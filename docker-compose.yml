@@ -1,0 +1,47 @@
+version: '3'
+services:
+  appliedresearch-backend:
+    build:
+      dockerfile: ./backend/Dockerfile
+      context: ./
+      args:
+        BACKEND_DOCUMENT_ROOT: ${BACKEND_DOCUMENT_ROOT}
+        RUN_NPM_INSTALL: ${RUN_NPM_INSTALL}
+        INITIALIZE_DB_DATA: ${INITIALIZE_DB_DATA}
+    env_file:
+      - .env
+    image: appliedresearch-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - appliedresearch-mysql
+    volumes:
+      - ${BACKEND_DOCUMENT_ROOT}/node_modules
+      - ./backend:${BACKEND_DOCUMENT_ROOT}
+  appliedresearch-frontend:
+      build:
+        dockerfile: ./frontend/Dockerfile
+        context: ./
+        args:
+          FRONTEND_DOCUMENT_ROOT: ${FRONTEND_DOCUMENT_ROOT}
+      env_file:
+        - .env
+      image: appliedresearch-frontend
+      depends_on:
+        - appliedresearch-backend
+      ports:
+        - "3000:3000"
+      volumes:
+        - ${FRONTEND_DOCUMENT_ROOT}/node_modules
+        - ./frontend:${FRONTEND_DOCUMENT_ROOT}
+  appliedresearch-mysql:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    volumes:
+      - ./docker-mysql-db:/var/lib/mysql
