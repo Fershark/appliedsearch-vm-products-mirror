@@ -8,6 +8,7 @@ import reducers from './reducers';
 import Login from './views/Login';
 import { doSignOut } from './actions/authenticate';
 //import SignUp from './views/SignUp';
+require('dotenv').config();
 
 // use this route for protected pages
 const PrivateRoute = ({ component: Component, ...rest }) => (
