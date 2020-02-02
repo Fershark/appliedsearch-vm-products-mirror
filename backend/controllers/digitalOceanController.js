@@ -78,3 +78,28 @@ exports.getAllSizes = async (req, res, next) => {
         console.log(err);
     }
 };
+
+exports.getAllRegions = async (req, res, next) => {
+
+    const options = {
+        hostname: 'api.digitalocean.com',
+        port: 443,
+        path: '/v2/regions',
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+        }
+    }
+
+    try {
+        var data = await DigitalOceanAPI.getAPI(options)
+
+        res.status(200).json(data.regions)
+
+    } catch (err) {
+        res.status(404).json(err)
+        console.log("ERROR from DO-Controller: getAllSizes")
+        console.log(err);
+    }
+};
