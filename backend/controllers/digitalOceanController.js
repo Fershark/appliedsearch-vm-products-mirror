@@ -49,7 +49,32 @@ exports.getAllDistributions = async (req, res, next) => {
         res.status(200).json(distributions)
     } catch (err) {
         res.status(404).json(err)
-        console.log("ERROR from DO-Controller:")
+        console.log("ERROR from DO-Controller: getAllDistributions")
+        console.log(err);
+    }
+};
+
+exports.getAllSizes = async (req, res, next) => {
+
+    const options = {
+        hostname: 'api.digitalocean.com',
+        port: 443,
+        path: '/v2/sizes',
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+        }
+    }
+
+    try {
+        var data = await DigitalOceanAPI.getAPI(options)
+
+        res.status(200).json(data.sizes.filter(size => size.available == true))
+
+    } catch (err) {
+        res.status(404).json(err)
+        console.log("ERROR from DO-Controller: getAllSizes")
         console.log(err);
     }
 };

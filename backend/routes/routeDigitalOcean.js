@@ -7,6 +7,7 @@ const digitalOceanController = require('../controllers/digitalOceanController');
 
 //get all distributions
 routers.get('/distributions', digitalOceanController.getAllDistributions);
+routers.get('/sizes', digitalOceanController.getAllSizes);
 
 
 module.exports = routers;
