@@ -34,7 +34,7 @@ class Login extends React.Component {
     getCurrentUserAuth().then(user => {
       if (user) {
         console.log('USER SIGNED IN, SO REDIRECT TO HOME PAGE');
-        this.props.history.push('/');
+        this.props.history.push('/home');
       } else {
         console.log('USER NOT LOGIN YET');
         this.props.history.push('/login');
