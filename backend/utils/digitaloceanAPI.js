@@ -175,4 +175,71 @@ module.exports = class DigitalOceanAPI {
 
     };
 
+    static postAPI(options, postData) {
+
+        return new Promise((resolve, reject) => {
+            const data = JSON.stringify(postData)
+
+            var resBody = ''
+
+            const req = https.request(options, (res) => {
+                console.log(`statusCode: ${res.statusCode}`)
+
+                res.on('data', (d) => {
+                    resBody += d
+                })
+
+                res.on('end', function () {
+                    var parsedData = JSON.parse(resBody);
+
+                    // return parsedData;
+                    resolve(parsedData);
+                });
+
+
+            })
+
+            req.on('error', (error) => {
+                console.error(error)
+                reject(error)
+            })
+
+            req.write(data)
+            req.end()
+
+        });
+    };
+
+    static deleteAPI(options) {
+
+        return new Promise((resolve, reject) => {
+
+            var resBody = ''
+
+            const req = https.request(options, (res) => {
+                console.log(`statusCode: ${res.statusCode}`)
+
+                res.on('data', (d) => {
+                    resBody += d
+                })
+
+                res.on('end', function () {
+                    var parsedData = JSON.parse(resBody);
+
+                    // return parsedData;
+                    resolve(parsedData);
+                });
+
+            })
+
+            req.on('error', (error) => {
+                console.error(error)
+                reject(error)
+            })
+            // req.write(data)
+            req.end()
+
+        });
+    };
+
 }
