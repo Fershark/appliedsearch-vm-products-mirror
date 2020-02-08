@@ -7,6 +7,11 @@ const digitalOceanController = require('../controllers/digitalOceanController');
 
 //get all distributions
 routers.get('/distributions', digitalOceanController.getAllDistributions);
+routers.get('/sizes', digitalOceanController.getAllSizes);
+routers.get('/regions', digitalOceanController.getAllRegions);
 
+routers.post('/create-vms', digitalOceanController.createVMs)
+
+routers.delete('/delete-vms-by-tags/:tags', digitalOceanController.deleteVMsByTags)
 
 module.exports = routers;
