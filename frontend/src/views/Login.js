@@ -7,7 +7,6 @@ import {
   Grid,
   Container,
   LinearProgress,
-  CssBaseline,
   Typography,
   TextField,
   Button,
@@ -21,6 +20,7 @@ import {
   doSignInWithEmailAndPassword,
   getCurrentUserAuth,
 } from '../actions/authenticate';
+import AppBar from '../components/AppBar';
 
 class Login extends React.Component {
   constructor(props) {
@@ -44,7 +44,7 @@ class Login extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps.auth_message.success !== this.props.auth_message.success) {
-      this.props.history.push('/');
+      this.props.history.push('/home');
     }
   }
 
@@ -56,13 +56,14 @@ class Login extends React.Component {
   }
 
   render() {
-    const {classes} = this.props;
+    const {classes, appStyle} = this.props;
     return (
       <React.Fragment>
+        <AppBar open={false} />
+        <div className={appStyle.appBarSpacer} />
         {this.props.auth_processing && <LinearProgress color="secondary" />}
         <Container component="main" maxWidth="xs">
           <ToastContainer />
-          <CssBaseline />
           <div className={classes.paper}>
             <Avatar className={classes.avatar}>
               <LockOutlinedIcon />

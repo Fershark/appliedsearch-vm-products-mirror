@@ -3,15 +3,15 @@ import {Route} from 'react-router-dom';
 import {Redirect} from 'react-router';
 
 // use this route for protected pages
-export default ({component: Component, ...rest}) => (
+export default ({component: Component, appStyle: AppStyle, ...rest}) => (
   <Route
     {...rest}
-    render={props => 
-        JSON.parse(localStorage.getItem('app_user')) ? (
-          <Component {...props}/>
-        ) : (
-          <Redirect to={{pathname: '/login', state: {from: props.location}}} />
-        )
+    render={props =>
+      JSON.parse(localStorage.getItem('app_user')) ? (
+        <Component {...props} appStyle={AppStyle} />
+      ) : (
+        <Redirect to={{pathname: '/login', state: {from: props.location}}} />
+      )
     }
   />
 );
