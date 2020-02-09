@@ -6,14 +6,13 @@ import Drawer from '../components/Drawer';
 
 class Home extends React.Component {
   render() {
-    const {classes, appStyle} = this.props;
-    console.log(appStyle);
-    //const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+    //const {classes} = this.props;
+    const {appStyle} = this.props;
     return (
       <React.Fragment>
         <Drawer open={true} />
         <main className={appStyle.content}>
-          <Container maxWidth="lg" className={classes.container}>
+          <Container maxWidth="lg" className={appStyle.container}>
             Home page content
           </Container>
         </main>

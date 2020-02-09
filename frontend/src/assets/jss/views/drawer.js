@@ -1,4 +1,5 @@
-import {drawerWidth} from './app';
+import config from '../../../config/';
+const drawerWidth = config.drawerWidth;
 
 export default theme => ({
   drawerPaper: {
