@@ -7,6 +7,7 @@ import appStyles from './assets/jss/views/app';
 import Login from './pages/Login';
 import {doSignOut} from './actions/authenticate';
 import Home from './pages/Home';
+import LandingPage from './pages/LandingPage';
 //import SignUp from './pages/SignUp';
 
 const useStyles = makeStyles(appStyles);
@@ -22,6 +23,7 @@ export default function App(props) {
         <Route path="/login" render={props => <Login {...props} appStyle={classes} />} />
         <Route path="/logout" exact render={props => doSignOut(props)} />
         <PrivateRoute path="/home" component={Home} appStyle={classes} />
+        <Route path="/" exact component={LandingPage} />
       </Switch>
     </div>
   );
