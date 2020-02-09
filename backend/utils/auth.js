@@ -1,5 +1,5 @@
 var admin = require('firebase-admin');
-const User = require('../models/user');
+const User = require('../models/User');
 
 const isAuthenticated = (req, res, next) => {
   if (req.get("Authorization") == null) {
