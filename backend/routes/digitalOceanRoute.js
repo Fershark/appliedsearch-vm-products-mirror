@@ -3,7 +3,7 @@ const routers = express.Router();
 // const isAuth = require('../util/auth');
 const digitalOceanController = require('../controllers/digitalOceanController');
 // ALL ROUTES OF DIGITAL OCEAN API
-// prefix: /do
+// prefix: /api/do
 
 //get all distributions
 routers.get('/distributions', digitalOceanController.getAllDistributions);
