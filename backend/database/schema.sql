@@ -14,37 +14,28 @@ CREATE TABLE USERS (
     is_active BOOLEAN NOT NULL DEFAULT 1
 );
 
-CREATE TABLE CONTRACTS(
-    id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    date DATETIME,
-    user_id INTEGER,
-    ip  VARCHAR(50),
-    config_details TEXT, -- JSON config of the vm with ip
-    status VARCHAR(20),
-    FOREIGN KEY (user_id) REFERENCES USERS(id)
-);
-
-CREATE TABLE PRODUCT_COMPONENTS (
+CREATE TABLE PRODUCTS (
      id INTEGER AUTO_INCREMENT PRIMARY KEY,
      name VARCHAR(255),
      description TEXT,
-     type VARCHAR(255)
+     `version` VARCHAR(255)
 );
 
-CREATE TABLE ACTIONS(
+CREATE TABLE ACTIONS (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
     started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     completed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     vm_id  INTEGER NOT NULL,
-    type VARCHAR(50) NOT NULL, 
-    status VARCHAR(20) NOT NULL,
+    type VARCHAR(50) NOT NULL, -- create/power-on/power-off/install/uninstall/initial
+    product TEXT, -- mysql/lamp/ {instance-of-product-table}
+    status VARCHAR(20) NOT NULL, -- in-progress/errored/completed
     FOREIGN KEY (vm_id) REFERENCES VMS(id)
 );
 
 CREATE TABLE VMS(
     id INTEGER PRIMARY KEY,
     user_id INTEGER,
-    config_details TEXT,
+    products TEXT, -- jsonarray 
     is_deleted BOOLEAN NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES USERS(id)
 );
