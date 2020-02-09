@@ -33,12 +33,14 @@ export default theme => ({
     paddingBottom: theme.spacing(4),
   },
   paper: {
-    padding: theme.spacing(2),
-    display: 'flex',
-    overflow: 'auto',
-    flexDirection: 'column',
+    backgroundColor: theme.palette.primary.dark,
+    margin: 0,
+    padding: 0,
   },
-  fixedHeight: {
-    height: 240,
+  listItem: {
+    color: theme.palette.primary.contrastText,
+  },
+  icon: {
+    color: theme.palette.primary.contrastText,
   },
 });
