@@ -1,10 +1,13 @@
 const RequestHTTPS = require('../utils/requestHTTPS');
 const {
-  DIGITAL_OCEAN_API_TOKEN
+  DIGITAL_OCEAN_API_TOKEN,
+  GMAIL_PASSWD,
+  GMAIL_USER
 } = require('../config');
 
 const VM = require('../models/VM');
 const Action = require('../models/Action');
+const nodemailer = require("nodemailer");
 
 const sleep = async ms => {
   return new Promise(f => {
@@ -63,25 +66,41 @@ const getActionsOnDroplet = async (id) => {
   }
 }
 
+const sendPasswdToUser = (vm, user_email) => {
 
-// const Review = require('../models/review');
-// const { UPLOAD_IMAGE_FOLDER } = require('../config');
-// const Utils = require('../util/utils');
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: GMAIL_USER,
+      pass: GMAIL_PASSWD
+    }
+  });
+  
+  var mailOptions = {
+    from: GMAIL_PASSWD,
+    to: user_email,
+    subject: 'Your New VM: ' + vm.name, 
+    text: `Your new VM is all set to go! You can access it using the following credentials:
 
-// exports.getAllItems = (req, res, next) => {
-//   // we use promise which is nicer than callback
-//   const itemName = req.query.itemname;
-//   Item.findAll(itemName)
-//     .then(([rows, fields]) => {
-//       rows.forEach((currentValue, index, array) => {
-//         Utils.toBoolean(currentValue, 'isActive');
-//         array[index] = currentValue;
-//       });
-//       res.status(200).json(rows);
-//     }).catch(err => {
-//       console.log(err);
-//     });
-// };
+    VM Name: ${vm.name}
+    IP Address: ${vm.ipV4}
+    Username: ${vm.username}
+    Password: ${vm.password}
+    
+    For security reasons, you will be required to change this Droplet’s root password when you login. You should choose a strong password that will be easy for you to remember, but hard for a computer to guess. You might try creating an alpha-numerical phrase from a memorable sentence (e.g. “I won my first spelling bee at age 7,” might become “Iwm#1sbaa7”). Random strings of common words, such as “Mousetrap Sandwich Hospital Anecdote,” tend to work well, too.
+    
+    Happy Coding,
+    Team VM Service`
+  };
+  
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
+}
 
 exports.getVM = async (req, res, next) => {
   // Item.findByItemId(req.params.item_id)
@@ -143,11 +162,19 @@ exports.createVM = async (req, res, next) => {
   postData.tags = [req.body.user_id + ""];
   //add default password
   postData.user_data = `#cloud-config
+  users:
+  - name: vm-service
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: sudo
+    
   chpasswd:
     list: |
       root:${password}
+      vm-service:${password}
     expire: True`;
 
+    // ssh-authorized-keys:
+    // - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLYPP/fHevjbng9Y+4pBtPxfJuyxAQGWhldViQiVt07uN577BmtAooEZf3uZKDbA9JCTDlcfQRwsCsyJZuebDAFvpRVidwhrvafLYHmBXFYzmR546m5S+bFAgeXQcxdgQkHfgF8Vuz5aA0XN+gtIYTGPwpalPJTzm03uHfxkut/YsubhlqyLI5jzYXkTfRc1vRRaCwh3ZnHwUZqbW8zxzwGkMpMGw9ZKBEBL7YhsnXBhXYOLJ600Sb8wTxN1moV5UiITgH0ohAfqlHxZG0pdwb5OhweWYUG5Ldgx7jK98Ti9Y5WYGzNdzSEBKqdj+ksC6B56waEnZ0D/nQ0rrR1K7X nvdha@nvdhau
   console.log("POST DATA");
   console.log(postData);
 
@@ -189,7 +216,16 @@ exports.createVM = async (req, res, next) => {
     VM.addVM(req.body)
       .then(([rows, fields]) => {
 
-        //TODO: send email, then set action complete
+        //send email
+        sendPasswdToUser({
+                          "name": droplet.name, 
+                          "ipV4": droplet.networks.v4[0].ip_address,
+                          "username": "root",
+                          "password": password
+                          
+                        }, 
+                          // 'nvdhau@gmail.com')
+                          'quang.le205@gmail.com')
 
         Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
 
@@ -230,51 +266,4 @@ exports.deleteAllVMsOfUser = async (req, res, next) => {
     console.log("ERROR from deleteAllVMsOfUser")
     console.log(err);
   }
-
-  // if (req.user == null) {
-  //   res.status(400).json({
-  //     message: "The user should be provided, add the callback to the router to check if the user is logged"
-  //   });
-  //   return;
-  // }
-
-  // if (req.file != null)
-  //   req.body.imageURLs = UPLOAD_IMAGE_FOLDER + req.file.filename;
-
-  // Item.editItem(req.body).then(([rows, fields]) => {
-  //   res.status(200).json(req.body);
-  // }).catch(err => {
-  //   console.log(err);
-  // });
 };
-
-// exports.editItem = (req, res, next) => {
-//   console.log("Edit item");
-//   if (req.user == null) {
-//     res.status(400).json({
-//       message: "The user should be provided, add the callback to the router to check if the user is logged"
-//     });
-//     return;
-//   }
-
-//   if (req.file != null) 
-//     req.body.imageURLs = UPLOAD_IMAGE_FOLDER + req.file.filename;
-
-//   Item.editItem(req.body).then(([rows, fields]) => {
-//     res.status(200).json(req.body);
-//   }).catch(err => {
-//     console.log(err);
-//   });
-// };
-
-// exports.deleteItem= (req, res, next) => {
-// };
-
-// exports.getAllReviewsOfItem = (req, res, next) => {
-//   Review.findAllReviewsOfItem(req.params.item_id)
-//     .then(([rows, fields]) => {
-//       res.status(200).json(rows);
-//     }).catch(err => {
-//       console.log(err);
-//     });
-// };
