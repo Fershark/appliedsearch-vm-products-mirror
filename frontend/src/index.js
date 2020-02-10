@@ -3,14 +3,18 @@ import ReactDOM from 'react-dom';
 import * as serviceWorker from './serviceWorker';
 import {Provider} from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
+import {MuiThemeProvider} from '@material-ui/core/styles';
 import reducers from './reducers';
 import App from './App';
+import config from './config';
 require('dotenv').config();
 
 ReactDOM.render(
   <Provider store={reducers}>
     <BrowserRouter>
-      <App />
+      <MuiThemeProvider theme={config.theme}>
+        <App />
+      </MuiThemeProvider>
     </BrowserRouter>
   </Provider>,
   document.getElementById('root'),

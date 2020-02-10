@@ -9,6 +9,7 @@ import {
   Link,
   //IconButton,
 } from '@material-ui/core';
+import config from '../config';
 //import MenuIcon from '@material-ui/icons/Menu';
 
 const useStyles = makeStyles(appBarStyles);
@@ -31,7 +32,7 @@ export default function(props) {
         */}
         <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
           <Link href="/" color="inherit" underline="none">
-            Virtual Machine Products
+            {config.appName}
           </Link>
         </Typography>
       </Toolbar>

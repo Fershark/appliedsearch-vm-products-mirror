@@ -2,12 +2,13 @@ import React from 'react';
 import {Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/core/styles';
 import {CssBaseline} from '@material-ui/core';
-import PrivateRoute from './utils/PrivateRoute';
-import Login from './views/Login';
-import {doSignOut} from './actions/authenticate';
-import Home from './views/Home';
+import PrivateRoute from './containers/PrivateRoute';
 import appStyles from './assets/jss/views/app';
-//import SignUp from './views/SignUp';
+import Login from './pages/Login';
+import {doSignOut} from './actions/authenticate';
+import Home from './pages/Home';
+import LandingPage from './pages/LandingPage';
+//import SignUp from './pages/SignUp';
 
 const useStyles = makeStyles(appStyles);
 
@@ -22,6 +23,7 @@ export default function App(props) {
         <Route path="/login" render={props => <Login {...props} appStyle={classes} />} />
         <Route path="/logout" exact render={props => doSignOut(props)} />
         <PrivateRoute path="/home" component={Home} appStyle={classes} />
+        <Route path="/" exact component={LandingPage} />
       </Switch>
     </div>
   );
