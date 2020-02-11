@@ -31,10 +31,10 @@ class VMs {
 
     static addVM(params) {
         return db.execute(
-            'INSERT INTO VMS (id, user_id, config_details) VALUES (?, ?, ?)'
+            'INSERT INTO VMS (id, user_id) VALUES (?, ?)'
             ,
             [
-                params.vm_id, params.user_id, JSON.stringify(params.config_details)
+                params.vm_id, params.user_id
             ]
         );
     }

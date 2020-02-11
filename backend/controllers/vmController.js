@@ -87,7 +87,7 @@ const sendPasswdToUser = (vm, user_email) => {
     Username: ${vm.username}
     Password: ${vm.password}
     
-    For security reasons, you will be required to change this Droplet’s root password when you login. You should choose a strong password that will be easy for you to remember, but hard for a computer to guess. You might try creating an alpha-numerical phrase from a memorable sentence (e.g. “I won my first spelling bee at age 7,” might become “Iwm#1sbaa7”). Random strings of common words, such as “Mousetrap Sandwich Hospital Anecdote,” tend to work well, too.
+    For security reasons, you will be required to change this VM’s root password when you login. You should choose a strong password that will be easy for you to remember, but hard for a computer to guess. You might try creating an alpha-numerical phrase from a memorable sentence (e.g. “I won my first spelling bee at age 7,” might become “Iwm#1sbaa7”). Random strings of common words, such as “Mousetrap Sandwich Hospital Anecdote,” tend to work well, too.
     
     Happy Coding,
     Team VM Service`
@@ -224,8 +224,8 @@ exports.createVM = async (req, res, next) => {
                           "password": password
                           
                         }, 
-                          // 'nvdhau@gmail.com')
-                          'quang.le205@gmail.com')
+                          'nvdhau@gmail.com')
+                          // 'quang.le205@gmail.com')
 
         Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
 
@@ -265,5 +265,104 @@ exports.deleteAllVMsOfUser = async (req, res, next) => {
     res.status(404).json(err)
     console.log("ERROR from deleteAllVMsOfUser")
     console.log(err);
+  }
+};
+
+
+exports.getAllDistributions = async (req, res, next) => {
+
+  const options = {
+      hostname: 'api.digitalocean.com',
+      port: 443,
+      path: '/v2/images?page=1&per_page=100&type=distribution',
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+      }
+  }
+
+  try {
+      var data = await RequestHTTPS.get(options)
+
+      const distributionNames = ['Ubuntu', 'FreeBSD', 'Fedora', 'Debian', 'CentOS'];
+
+      let distributions = [];
+
+      distributionNames.forEach(name => {
+          distributions.push({
+              name: name,
+              data: data.images.filter(image => {
+                  return image.distribution == name
+              }).map(image => {
+                  return {
+                      "id": image.id,
+                      "name": image.name,
+                      "slug": image.slug
+                  }
+              })
+          })
+      });
+
+
+
+
+      // distributions = data["images"];
+
+      res.status(200).json(distributions)
+  } catch (err) {
+      res.status(404).json(err)
+      console.log("ERROR from DO-Controller: getAllDistributions")
+      console.log(err);
+  }
+};
+
+exports.getAllSizes = async (req, res, next) => {
+
+  const options = {
+      hostname: 'api.digitalocean.com',
+      port: 443,
+      path: '/v2/sizes',
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+      }
+  }
+
+  try {
+      var data = await RequestHTTPS.get(options)
+
+      res.status(200).json(data.sizes.filter(size => size.available == true))
+
+  } catch (err) {
+      res.status(404).json(err)
+      console.log("ERROR from DO-Controller: getAllSizes")
+      console.log(err);
+  }
+};
+
+exports.getAllRegions = async (req, res, next) => {
+
+  const options = {
+      hostname: 'api.digitalocean.com',
+      port: 443,
+      path: '/v2/regions',
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+      }
+  }
+
+  try {
+      var data = await RequestHTTPS.get(options)
+
+      res.status(200).json(data.regions)
+
+  } catch (err) {
+      res.status(404).json(err)
+      console.log("ERROR from DO-Controller: getAllRegions")
+      console.log(err);
   }
 };
