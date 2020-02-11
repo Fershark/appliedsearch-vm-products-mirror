@@ -42,7 +42,13 @@ export default function(props) {
           <ListItemIcon>
             <DashboardIcon />
           </ListItemIcon>
-            <ListItemText primary="Home" />
+          <ListItemText primary="Home" />
+        </ListItem>
+        <ListItem button component={NavLink} to="/vms" activeClassName="Mui-selected">
+          <ListItemIcon>
+            <ComputerIcon />
+          </ListItemIcon>
+          <ListItemText primary="Virtual Machines" />
         </ListItem>
       </List>
     </Drawer>
