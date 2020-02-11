@@ -17,7 +17,7 @@ class Actions {
 
     static addAction(params) {
         return db.execute(
-            'INSERT INTO Actions (vm_id, type, status) VALUES (?, ?, ?)'
+            'INSERT INTO ACTIONS (vm_id, type, status) VALUES (?, ?, ?)'
             ,
             [
                 params.vm_id, params.type, params.status
@@ -27,7 +27,7 @@ class Actions {
 
     static updateActionStatus(action_id, status) {
         return db.execute(
-            'UPDATE Actions SET status = ? WHERE id = ?'
+            'UPDATE ACTIONS SET status = ? WHERE id = ?'
             ,
             [
                 status, action_id
