@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import {doSignOut} from './actions/authenticate';
 import Home from './pages/Home';
 import VMs from './pages/VMs';
+import LandingPage from './pages/LandingPage';
 //import SignUp from './pages/SignUp';
 
 const useStyles = makeStyles(appStyles);
@@ -25,6 +26,7 @@ export default function App(props) {
         <PrivateRoute path="/home" component={Home} appStyle={classes} />
         <PrivateRoute path="/vms/add" component={Home} appStyle={classes} />
         <PrivateRoute path="/vms" component={VMs} appStyle={classes} />
+        <Route path="/" exact component={LandingPage} />
       </Switch>
     </div>
   );
