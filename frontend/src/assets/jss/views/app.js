@@ -1,6 +1,7 @@
 export default theme => ({
   root: {
-    display: 'flex',
+    // display: 'flex',
+    margin: '0 auto',
   },
   appBarSpacer: theme.mixins.toolbar,
   content: {
