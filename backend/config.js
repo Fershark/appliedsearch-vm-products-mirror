@@ -20,5 +20,6 @@ module.exports = {
     FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID,
     FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
     GMAIL_USER: process.env.GMAIL_USER,
-    GMAIL_PASSWD: process.env.GMAIL_PASSWD
+    GMAIL_PASSWD: process.env.GMAIL_PASSWD,
+    TEST_MAIL: process.env.TEST_MAIL
 }

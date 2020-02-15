@@ -2,6 +2,7 @@ const express = require('express');
 const routers = express.Router();
 // const isAuth = require('../util/auth');
 const vmController = require('../controllers/vmController');
+const isAuth = require('../utils/auth');
 // ALL ROUTES OF DIGITAL OCEAN API
 // prefix: /api/vms
 
@@ -14,7 +15,7 @@ routers.get('/regions', vmController.getAllRegions);
 routers.get('/:id', vmController.getVM);
 
 //create a vm
-routers.post('/', vmController.createVM);
+routers.post('/', isAuth, vmController.createVM);
 
 //delete all vms of a user: /api/vms?user_id=1
 routers.delete('/', vmController.deleteAllVMsOfUser)
