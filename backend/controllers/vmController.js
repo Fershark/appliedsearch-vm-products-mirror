@@ -219,19 +219,13 @@ exports.createVM = async (req, res, next) => {
                           "password": password
                           
                         }, 
-                          //'nvdhau@gmail.com')
-                           'ferchriquelme@gmail.com')
+                          'nvdhau@gmail.com')
+                          //  'ferchriquelme@gmail.com')
                           // 'quang.le205@gmail.com')
 
         Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
 
         res.status(201).json(droplet);
-      });
-
-    let action_id = null;
-    Action.addAction(action)
-      .then(([rows, fields]) => {
-        action_id = rows.insertId;
       });
 
   } catch (err) {

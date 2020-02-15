@@ -13,11 +13,9 @@ const digitalOceanRoutes = require('./routes/digitalOceanRoute');
 const vmRoutes = require('./routes/vmRoute');
 
 const userRoutes = require('./routes/userRoute');
-const authRoutes = require('./routes/authRoute');
 
 // Place your main routers here
 // ............................
-app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
 app.use('/api/do', digitalOceanRoutes);

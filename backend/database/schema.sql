@@ -6,9 +6,8 @@ USE appliedreseach_vm;
 
 CREATE TABLE USERS (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    uid VARCHAR(200) NOT NULL,   
     name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(50),
     address VARCHAR(255),
     is_active BOOLEAN NOT NULL DEFAULT 1

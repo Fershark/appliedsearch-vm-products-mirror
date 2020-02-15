@@ -1,7 +1,9 @@
 // place the users logic here
 const User = require('../models/User');
 
-const { firebaseAdmin } = require('../utils/firebase');
+const {
+  firebaseAdmin
+} = require('../utils/firebase');
 
 exports.getAllUsers = (req, res, next) => {
   if (req.user == null) {
@@ -15,45 +17,56 @@ exports.getAllUsers = (req, res, next) => {
     .then(doc => {
       res.status(200).json(doc.data());
     }).catch(err => {
-        console.log(err);
+      console.log(err);
     });
 };
 
-exports.create = (req, res, next) => {
+exports.create = async (req, res, next) => {
+  
   console.log("register user");
-  if (!req.body.email || 
-    !req.body.password || 
+  if (!req.body.email ||
+    !req.body.password ||
     !req.body.address ||
-    !req.body.lat ||
-    !req.body.lng ||
-    !req.body.username) {
+    !req.body.name ||
+    !req.body.phone) {
     return res.status(400).send({
       success: 'false',
-      message: 'email, password, username, address, lat, lnf are required',
+      message: 'email, password, name, address, phone are required',
     });
   }
   const user = req.body;
-  user.isAdmin = false;
-  user.isActive = true;
-  firebaseAdmin.auth().createUser(user).then(userRecord => {
-    delete user.password;
-    User.saveUser(user).then(resultData => {
-      user.uid = userRecord.uid;
-      res.status(201).json(user);
-    }).catch(err => {
-      res.status(400).json({
-        message: "unable to create record"
-      });
+
+  try {
+    //1. save to database
+    let savedUser = await User.saveUser(user)
+    console.log("savedUser: ", savedUser);
+
+    user.id = savedUser[0].insertId;
+
+    //2. save to firebase
+    let savedFirebaseUser = await firebaseAdmin.auth().createUser({
+      uid: user.id + "",
+      email: user.email,
+      password: user.password
     });
-  }).catch(err => {
-    console.log(err);
-    let status = 400;
-    if (err != null && err.errorInfo != null && err.errorInfo.code == 'auth/email-already-exists')
-      status = 409;
-    res.status(status).json({
-      message: err.errorInfo.message
+    
+    delete user.password;//delete password
+
+    //3. return response
+    res.status(201).json(user);
+
+  } catch (err) {
+    console.log("ERROR: ", err)
+
+    //delete local user if added
+    if (user.id !== undefined)
+      User.deleteUser(user.id);
+
+    res.status(400).json({
+      message: "unable to create record"
     });
-  });
+  };
+
 };
 
 exports.edit = (req, res, next) => {
@@ -65,12 +78,11 @@ exports.edit = (req, res, next) => {
   }
   const user = req.body;
   User.saveUser(user).then(resultData => {
-      res.status(200).json(user);
-    }).catch(err => {
-      console.log(err);
-      res.status(400).json({
-        message: "Bad request"
-      });
+    res.status(200).json(user);
+  }).catch(err => {
+    console.log(err);
+    res.status(400).json({
+      message: "Bad request"
     });
+  });
 };
-
