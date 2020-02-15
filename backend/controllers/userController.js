@@ -70,15 +70,28 @@ exports.create = async (req, res, next) => {
 };
 
 exports.edit = (req, res, next) => {
-  if (req.user == null) {
-    res.status(400).json({
-      message: "The user should be provided, add the callback to the router to check if the user is logged"
+
+  console.log("edit user");
+  if (req.user == null || 
+    !req.body.address ||
+    !req.body.name ||
+    !req.body.phone) {
+    return res.status(400).send({
+      success: 'false',
+      message: 'name, address, phone are required',
     });
-    return;
   }
-  const user = req.body;
-  User.saveUser(user).then(resultData => {
-    res.status(200).json(user);
+  //update user info
+  req.user.name = req.body.name;
+  req.user.address = req.body.address;
+  req.user.phone = req.body.phone;
+
+  User.updateUser(req.user).then(result => {
+    
+    if(result[0].affectedRows != 1)
+      throw new Error('Update User Fail!')
+
+    res.status(200).json(req.user);
   }).catch(err => {
     console.log(err);
     res.status(400).json({
