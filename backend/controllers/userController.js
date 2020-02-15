@@ -5,22 +5,6 @@ const {
   firebaseAdmin
 } = require('../utils/firebase');
 
-exports.getAllUsers = (req, res, next) => {
-  if (req.user == null) {
-    res.status(400).json({
-      message: "The user should be provided, add the callback to the router to check if the user is logged"
-    });
-    return;
-  }
-  // we use promise which is nicer than callback
-  User.findUserByEmail(req.user.email)
-    .then(doc => {
-      res.status(200).json(doc.data());
-    }).catch(err => {
-      console.log(err);
-    });
-};
-
 exports.create = async (req, res, next) => {
   
   console.log("register user");
@@ -39,7 +23,7 @@ exports.create = async (req, res, next) => {
   try {
     //1. save to database
     let savedUser = await User.saveUser(user)
-    console.log("savedUser: ", savedUser);
+    // console.log("savedUser: ", savedUser);
 
     user.id = savedUser[0].insertId;
 
@@ -98,4 +82,9 @@ exports.edit = (req, res, next) => {
       message: "Bad request"
     });
   });
+};
+
+exports.getUser = (req, res, next) => {
+  console.log("get user");
+  res.status(200).json(req.user);
 };
