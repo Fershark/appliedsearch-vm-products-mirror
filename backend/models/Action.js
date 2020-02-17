@@ -35,6 +35,13 @@ class Actions {
         );
     }
 
+    static checkBusyVM(vm_id){//true if there is "in-progess" action
+        return db.execute(
+            'SELECT EXISTS(SELECT * FROM ACTIONS WHERE vm_id=? AND status=?) as result;'
+            ,[vm_id, this.STATUS_IN_PROGRESS()]
+        )
+    }
+
 }
 
 module.exports = Actions;

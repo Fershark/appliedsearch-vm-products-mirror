@@ -39,6 +39,33 @@ class VMs {
         );
     }
 
+    static deleteVM(id) {
+        return db.execute(
+            'DELETE FROM VMS WHERE id=? ;'
+            ,[id]
+        );
+    }
+
+    static updateIpV4(ipV4, id){
+        return db.execute(
+            'UPDATE VMS SET ipV4=? WHERE id=? ;'
+            ,[ipV4, id]
+        )
+    }
+
+    static checkOwner(user_id, vm_id){
+        return db.execute(
+            'SELECT EXISTS(SELECT * FROM VMS WHERE id=? AND user_id=?) as result;'
+            ,[vm_id, user_id]
+        )
+    }
+
+    static getVMSsummary(){
+        return db.execute(
+            `SELECT CONCAT('[', GROUP_CONCAT(CONCAT('{"', user_id, '-', id, '":"', ipV4, '"}') separator','), ']') as result from VMS;`
+        )
+    }
+
     // static editItem(params) {
 
     //     if(params.numberOfReview != null && params.averageRating != null){//add a review, 

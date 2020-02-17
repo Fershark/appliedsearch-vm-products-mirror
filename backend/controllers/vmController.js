@@ -192,7 +192,7 @@ exports.createVM = async (req, res, next) => {
         "type": "create",
         "status": Action.STATUS_IN_PROGRESS()
       }
-      return Action.addAction(action);  
+      return Action.addAction(action);
     }).then(([rows, fields]) => {
       action_id = rows.insertId; //get action_id
     }).catch(err => {
@@ -220,6 +220,13 @@ exports.createVM = async (req, res, next) => {
 
     ///update action status
     Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
+
+    //update ipV4 in localDB
+    await VM.updateIpV4(droplet.networks.v4[0].ip_address, vm_id);
+
+    //TODO: CALL /update_do_vms from QUANG
+    let VMSsummary = await VM.getVMSsummary();
+    console.log("VMSsummary: ", VMSsummary[0][0].result);
 
     res.status(201).json(droplet);
 
@@ -259,6 +266,58 @@ exports.deleteAllVMsOfUser = async (req, res, next) => {
   }
 };
 
+exports.deleteVM = async (req, res, next) => {
+  console.log("Delete VM");
+
+  let vm_id = req.params.id;
+
+  const options = {
+    hostname: 'api.digitalocean.com',
+    port: 443,
+    path: '/v2/droplets/' + vm_id,
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+    }
+  }
+
+  try {
+    //validate
+    //1. user is vm's owner
+    let isOwner = await VM.checkOwner(req.user.id, vm_id);
+    console.log("isOwner: ", isOwner[0][0].result);
+    if(isOwner[0][0].result == 0) {
+      throw new Error("User is not the vm's owner!")
+    }
+
+    //2. all actions on vm must not be "in-progess", wait until all done
+    let isBusy = await Action.checkBusyVM(vm_id);
+    console.log("isBusy: ", isBusy[0][0].result);
+    
+    while(isBusy[0][0].result == 1) {
+      await sleep(5000);
+      isBusy = await Action.checkBusyVM(vm_id);
+      console.log("isBusy: ", isBusy[0][0].result);
+    }
+
+    let data = await RequestHTTPS.delete(options);
+
+    //delete vm on local db
+    let deleteResult = await VM.deleteVM(vm_id);
+
+    console.log(deleteResult);
+    if(deleteResult[0].affectedRows == 1)
+      res.status(200).json(deleteResult);
+    else
+      throw new Error('Cannot delete the VM');
+
+  } catch (err) {
+    console.log("ERROR from deleteVM ", err);
+    res.status(404).json(err)
+  }
+};
+
 
 exports.getAllDistributions = async (req, res, next) => {
 
@@ -294,9 +353,6 @@ exports.getAllDistributions = async (req, res, next) => {
         })
       })
     });
-
-
-
 
     // distributions = data["images"];
 
