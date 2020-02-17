@@ -104,20 +104,27 @@ const sendPasswdToUser = (vm, user_email) => {
 }
 
 exports.getVM = async (req, res, next) => {
-  // Item.findByItemId(req.params.item_id)
-  //     .then(([rows, fields]) => {
-  //         rows.forEach((currentValue, index, array) => {
-  //           Utils.toBoolean(currentValue, 'isActive');
-  //           array[index] = currentValue;
-  //         });
-  //         res.status(200).json(rows[0]);
-  //     }).catch(err => {
-  //         console.log(err);
-  //     });
+  let vm_id = req.params.id;
+  console.log("Get VM info of id = " + vm_id);
 
-  let data = await getDroplet(req.params.id);
-  res.status(200).json(data)
+  try{
+    //validate user is vm's owner
+    let isOwner = await VM.checkOwner(req.user.id, vm_id);
+    console.log("isOwner: ", isOwner[0][0].result);
+    if(isOwner[0][0].result == 0) {
+      throw new Error("User is not the vm's owner!")
+    }
 
+    let data = await getDroplet(vm_id);
+    let result = await VM.getById(vm_id);
+
+    data.droplet.products = result[0][0].products;
+    res.status(200).json(data.droplet);
+  }catch(err){
+    res.status(404).json(err)
+    console.log("ERROR from getVM")
+    console.log(err);
+  }
 };
 
 exports.createVM = async (req, res, next) => {

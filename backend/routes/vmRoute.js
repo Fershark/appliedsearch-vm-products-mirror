@@ -12,7 +12,7 @@ routers.get('/sizes', vmController.getAllSizes);
 routers.get('/regions', vmController.getAllRegions);
 
 //get vm info
-routers.get('/:id', vmController.getVM);
+routers.get('/:id', isAuth, vmController.getVM);
 
 //create a vm
 routers.post('/', isAuth, vmController.createVM);

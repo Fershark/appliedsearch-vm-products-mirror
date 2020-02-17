@@ -23,11 +23,9 @@ class VMs {
         
     // }
 
-    // static findByItemId(itemId) {
-    //     return db.execute(
-    //         `SELECT * FROM items i 
-    //         WHERE i.id = ${itemId};`);
-    // }
+    static getById(id) {
+        return db.execute(`SELECT * FROM VMS WHERE id = ${id};`);
+    }
 
     static addVM(params) {
         return db.execute(
