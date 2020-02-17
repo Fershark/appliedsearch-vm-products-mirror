@@ -9,16 +9,12 @@ const path = require('path');
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
-const digitalOceanRoutes = require('./routes/digitalOceanRoute');
 const vmRoutes = require('./routes/vmRoute');
-
 const userRoutes = require('./routes/userRoute');
 
 // Place your main routers here
 // ............................
 app.use('/api/users', userRoutes);
-
-app.use('/api/do', digitalOceanRoutes);
 app.use('/api/vms', vmRoutes);
 
 
