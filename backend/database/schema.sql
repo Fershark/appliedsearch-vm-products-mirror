@@ -24,7 +24,7 @@ CREATE TABLE VMS(
     id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
     products JSON, -- JSON array of products
-    is_deleted BOOLEAN NOT NULL DEFAULT 0,
+    ipV4 VARCHAR(100),
     FOREIGN KEY (user_id) REFERENCES USERS(id)
 );
 
@@ -36,5 +36,5 @@ CREATE TABLE ACTIONS (
     type VARCHAR(50) NOT NULL, -- create/power-on/power-off/install/uninstall/initial
     product JSON, -- mysql/lamp/ {instance-of-product-table}
     status VARCHAR(20) NOT NULL, -- in-progress/errored/completed
-    FOREIGN KEY (vm_id) REFERENCES VMS(id)
+    FOREIGN KEY (vm_id) REFERENCES VMS(id) ON DELETE CASCADE
 );
