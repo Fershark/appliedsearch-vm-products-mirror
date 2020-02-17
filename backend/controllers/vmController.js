@@ -303,12 +303,15 @@ exports.deleteVM = async (req, res, next) => {
 
     let data = await RequestHTTPS.delete(options);
 
+    //TODO: CALL /update_do_vms from QUANG
+    let VMSsummary = await VM.getVMSsummary();
+    console.log("VMSsummary: ", VMSsummary[0][0].result);
+
     //delete vm on local db
     let deleteResult = await VM.deleteVM(vm_id);
 
-    console.log(deleteResult);
     if(deleteResult[0].affectedRows == 1)
-      res.status(200).json(deleteResult);
+      res.status(200).json(data);
     else
       throw new Error('Cannot delete the VM');
 
