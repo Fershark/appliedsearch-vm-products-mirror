@@ -9,6 +9,8 @@ const {
 const VM = require('../models/VM');
 const Action = require('../models/Action');
 const nodemailer = require("nodemailer");
+const authorize = require('../utils/authorize');
+const actionController = require('../controllers/actionController')
 
 const sleep = async ms => {
   return new Promise(f => {
@@ -194,12 +196,17 @@ exports.createVM = async (req, res, next) => {
       "user_id": req.user.id
     }).then(([rows, fields]) => {
       //Create action
-      let action = {
+      // let action = {
+      //   "vm_id": vm_id,
+      //   "type": "create",
+      //   "status": Action.STATUS_IN_PROGRESS()
+      // }
+      // return Action.addAction(action);
+      return actionController._create({
         "vm_id": vm_id,
-        "type": "create",
-        "status": Action.STATUS_IN_PROGRESS()
-      }
-      return Action.addAction(action);
+        "type": Action.TYPE_CREATE()
+      });
+
     }).then(([rows, fields]) => {
       action_id = rows.insertId; //get action_id
     }).catch(err => {
@@ -292,11 +299,7 @@ exports.deleteVM = async (req, res, next) => {
   try {
     //validate
     //1. user is vm's owner
-    let isOwner = await VM.checkOwner(req.user.id, vm_id);
-    console.log("isOwner: ", isOwner[0][0].result);
-    if(isOwner[0][0].result == 0) {
-      throw new Error("User is not the vm's owner!")
-    }
+    authorize.checkOwnership(req.user.id, vm_id);
 
     //2. all actions on vm must not be "in-progess", wait until all done
     let isBusy = await Action.checkBusyVM(vm_id);

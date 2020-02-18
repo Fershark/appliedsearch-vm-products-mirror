@@ -5,34 +5,20 @@ class VMs {
         // any
     }
 
-    // static findAll(item) {
-    //     if (item == undefined) {
-    //         return db.execute('SELECT i.* FROM items i ORDER BY i.id DESC;');
-    //     } else {
-    //         const searchPlacholder = '%__placeholder__%';
-    //         const regex = /__placeholder__/gi;
-    //         const itemSearch = searchPlacholder.replace(regex, item);
-    //         return db.execute(
-    //                 `SELECT i.* 
-    //                 FROM items i 
-    //                 WHERE i.name LIKE ?
-    //                 ORDER BY i.id DESC;`,
-    //                 [itemSearch]
-    //             );
-    //     }
-        
-    // }
-
     static getById(id) {
         return db.execute(`SELECT * FROM VMS WHERE id = ${id};`);
     }
 
+    static getProducts(id){
+        return db.execute(`SELECT products FROM VMS WHERE id=${id};`)
+    }
+
     static addVM(params) {
         return db.execute(
-            'INSERT INTO VMS (id, user_id) VALUES (?, ?)'
+            'INSERT INTO VMS (id, user_id, products) VALUES (?, ?, ?)'
             ,
             [
-                params.vm_id, params.user_id
+                params.vm_id, params.user_id, '{}'//create empty object for products field
             ]
         );
     }
@@ -51,7 +37,7 @@ class VMs {
         )
     }
 
-    static checkOwner(user_id, vm_id){
+    static checkOwnership(user_id, vm_id){
         return db.execute(
             'SELECT EXISTS(SELECT * FROM VMS WHERE id=? AND user_id=?) as result;'
             ,[vm_id, user_id]

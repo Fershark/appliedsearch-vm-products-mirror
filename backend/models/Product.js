@@ -5,6 +5,12 @@ module.exports = class Product {
         // any
     }
 
+    //product status on a vm
+    static STATUS_INSTALLING = () => "installing";
+    static STATUS_UNSTALLING = () => "unstalling";
+    static STATUS_INSTALLED = () => "installed";
+    static STATUS_ERRORED = () => "errored";
+
     static getAll() {
         return db.execute('SELECT * FROM PRODUCTS ORDER BY name;');
     }
