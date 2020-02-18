@@ -233,7 +233,11 @@ exports.createVM = async (req, res, next) => {
     }, TEST_MAIL)
 
     ///update action status
-    Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
+    // Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
+    actionController._update({
+      "action_id": action_id,
+      "status": Action.STATUS_COMPLETED()
+    });
 
     //update ipV4 in localDB
     await VM.updateIpV4(droplet.networks.v4[0].ip_address, vm_id);

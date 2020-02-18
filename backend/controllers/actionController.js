@@ -133,12 +133,15 @@ exports._update = async (action) => {
 			break;
 		case Action.STATUS_IN_PROGRESS():
 			if (action.status == Action.STATUS_COMPLETED() || action.status == Action.STATUS_ERRORED()) {
-				actionInfo.status = action.status;
-				//get products info
+				actionInfo.status = action.status;//update action.status
+				
+				//get products info, then update 
 				let productsResult = await VM.getProducts(actionInfo.vm_id);
 				let products = productsResult[0][0].products;
-
-				if (typeof products[actionInfo.product.id] != "undefined") {
+				if(actionInfo.product == null){
+					//actions for DO => do nothing
+				}
+				else if (typeof products[actionInfo.product.id] != "undefined") {
 					switch (products[actionInfo.product.id].status) {
 						case Product.STATUS_INSTALLING():
 							products[actionInfo.product.id].status =
