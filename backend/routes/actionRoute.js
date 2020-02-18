@@ -5,6 +5,7 @@ const isAuth = require('../utils/auth');
 // ALL ROUTES OF ACTIONS
 // prefix: /actions
 
-router.post('/create', isAuth, actionController.create);
+router.post('/', isAuth, actionController.create);
+router.put('/', actionController.updateStatus);
 
 module.exports = router;

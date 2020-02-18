@@ -19,6 +19,11 @@ class Actions {
   static TYPE_INSTALL = () => "install";
   static TYPE_UNINSTALL = () => "uninstall";
 
+  static getById(id) {
+    return db.execute( 'SELECT * FROM ACTIONS WHERE id = ?',
+      [ id ] );
+  }
+
   static async addAction(params) {
 
     let connection = await db.getConnection();
@@ -32,6 +37,38 @@ class Actions {
         [
           params.vm_id, params.type, params.status, params.product == undefined ? null : params.product
         ]
+      );
+
+      //Update VMS table if needed
+      if(params.products)
+        await connection.execute(`UPDATE VMS SET products = '${JSON.stringify(params.products)}' WHERE id=${params.vm_id};`);
+
+      await connection.commit();
+      return result;
+    } catch (err) {
+
+      await connection.rollback();
+      // Throw the error again so others can catch it.
+      throw err;
+
+    } finally {
+
+      connection.release();
+
+    }
+  }
+
+  static async updateAction(params) {
+
+    let connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      
+      //Update ACTIONS table
+      let result = await connection.execute(
+        'UPDATE ACTIONS SET status = ? WHERE id=?;',
+        [ params.status, params.id ]
       );
 
       //Update VMS table if needed

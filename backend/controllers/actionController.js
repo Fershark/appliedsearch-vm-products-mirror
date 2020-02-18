@@ -8,10 +8,7 @@ exports._create = async (action) => {
 
 	//check vm_id and type
 	if (!action.vm_id || !action.type) {
-		throw new Error({
-			success: 'false',
-			message: 'vm_id, type are required',
-		});
+		throw new Error('vm_id and type are required');
 	}
 
 	//check product info
@@ -43,27 +40,26 @@ exports._create = async (action) => {
 		switch (action.type) { //install or uninstall
 			case Action.TYPE_INSTALL():
 				//allow INSTALL, when not installed or install errored 
-				if (!products[action.product.id] || 
-					[action.product.id].status == Product.STATUS_ERRORED()) {
+				if (!products[action.product.id] || products[action.product.id].status == Product.STATUS_ERRORED()) {
 					products[action.product.id] = {
 						"status": Product.STATUS_INSTALLING(),
 						"name": action.product.name,
 						"description": action.product.description,
 						"version": action.product.version
 					}
-				}else{
-					throw new Error('Invalid Request! Product has status ' + 	
-							products[action.product.id].status);
+				} else {
+					throw new Error('Invalid Request! Product has status ' +
+						products[action.product.id].status);
 				}
 				break;
 			case Action.TYPE_UNINSTALL():
 				//allow UNINSTALL, when product was installed
-				if(typeof products[action.product.id].status != "undefined" &&
-				(products[action.product.id].status == Product.STATUS_INSTALLED() || 
-				products[action.product.id].status == Product.STATUS_ERRORED())){
+				if (typeof products[action.product.id] != "undefined" &&
+					(products[action.product.id].status == Product.STATUS_INSTALLED() ||
+						products[action.product.id].status == Product.STATUS_ERRORED())) {
 					products[action.product.id].status = Product.STATUS_UNSTALLING();
-				}else{
-					throw new Error('Invalid Request! Product has not been installed successfully');
+				} else {
+					throw new Error('Invalid Request! Product has not been installed successfully or is uninstalling');
 				}
 				break;
 		}
@@ -92,11 +88,108 @@ exports.create = async (req, res, next) => {
 		let result = await this._create(req.body);
 
 		if (result[0].affectedRows == 1) { // action is added
+
+			let newAction = await Action.getById(result[0].insertId);
+			let products = await VM.getProducts(newAction[0][0].vm_id);
+
 			res.status(200).json({
-				"message": "Action Added!"
+				"message": "Action Added!",
+				"action": newAction[0][0],
+				"vm-products": products[0][0]
 			});
+
 		} else {
 			throw new Error('Fail to add action');
+		}
+	} catch (err) {
+		console.log(err);
+		res.status(400).json({
+			message: err.message
+		});
+	}
+};
+
+exports._update = async (action) => {
+
+	//check required fields
+	if (!action.action_id || !action.status) {
+		throw new Error('action_id and status are required');
+	}
+
+	//check action info exist
+	let actionResult = await Action.getById(action.action_id);
+	let actionInfo = actionResult[0][0];
+	if (!actionInfo)
+		throw new Error(`Action with id = ${action.action_id} does not exist`);
+
+	console.log("actionInfo", actionInfo);
+
+	switch (actionInfo.status) { //current status
+		case Action.STATUS_NEW():
+			if (action.status == Action.STATUS_IN_PROGRESS()) {
+				actionInfo.status = action.status;
+			} else
+				throw new Error('Invalid Request! Action status can only change from "new" to "in-progress"');
+			break;
+		case Action.STATUS_IN_PROGRESS():
+			if (action.status == Action.STATUS_COMPLETED() || action.status == Action.STATUS_ERRORED()) {
+				actionInfo.status = action.status;
+				//get products info
+				let productsResult = await VM.getProducts(actionInfo.vm_id);
+				let products = productsResult[0][0].products;
+
+				if (typeof products[actionInfo.product.id] != "undefined") {
+					switch (products[actionInfo.product.id].status) {
+						case Product.STATUS_INSTALLING():
+							products[actionInfo.product.id].status =
+								action.status == Action.STATUS_COMPLETED() ?
+								Product.STATUS_INSTALLED() : Product.STATUS_ERRORED();
+							break;
+						case Product.STATUS_UNSTALLING():
+							if (action.status == Action.STATUS_COMPLETED())
+								delete products[actionInfo.product.id]
+							else
+								products[actionInfo.product.id].status = Product.STATUS_ERRORED();
+							break;
+						default:
+							throw new Error('Invalid Request! ');
+					}
+				} else {
+					throw new Error('Invalid Request! Product has not been installed successfully');
+				}
+
+				actionInfo.products = products;
+			} else
+				throw new Error('Invalid Request! Action status can only change from "in-progess" to "completed" or "errored"');
+			break;
+		default: // not allowed
+			throw new Error('Invalid Request! Action status can only change from "new" or "in-progess" to other status');
+	}
+
+	console.log("post-actionInfo", actionInfo);
+	return await Action.updateAction(actionInfo);
+}
+
+exports.updateStatus = async (req, res, next) => {
+	console.log("update action status");
+
+	try {
+		//TODO: how to authorize our app
+
+		let result = await this._update(req.body);
+
+		if (result[0].affectedRows == 1) { // action is updated
+
+			let updatedAction = await Action.getById(req.body.action_id);
+			let products = await VM.getProducts(updatedAction[0][0].vm_id);
+
+			res.status(200).json({
+				"message": "Action Updated!",
+				"action": updatedAction[0][0],
+				"vm-products": products[0]
+			});
+		} else {
+			throw new Error('Fail to update action');
 		}
 	} catch (err) {
 		console.log(err);
