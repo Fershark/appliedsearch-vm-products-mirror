@@ -4,11 +4,13 @@ import {
   AUTH_LOGIN_USER,
   AUTH_PROCESSING,
   API_GET_USER,
+  AUTH_LOGOUT,
 } from '../config/endpoints-conf';
 //import axios from 'axios';
 // import * as firebase from 'firebase';
 import firebase from 'firebase/app';
 import 'firebase/auth';
+import store from '../reducers';
 
 // firebase config
 const fireBaseConfig = {
@@ -70,6 +72,7 @@ export const doSignInWithEmailAndPassword = (email, password) => {
 // firebase signout
 export const doSignOut = props => {
   fireBaseApp.auth().signOut();
+  store.dispatch({type: AUTH_LOGOUT, payload: null});
   props.history.push('/login');
 };
 
