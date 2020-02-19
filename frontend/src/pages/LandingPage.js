@@ -11,7 +11,7 @@ class LandingPage extends React.Component {
   render() {
     const {classes} = this.props;
     return (
-      <div>
+      <React.Fragment>
         <Box
           className={classes.headerNavigation}
           display="flex"
@@ -139,7 +139,7 @@ class LandingPage extends React.Component {
             </p>
           </Grid>
         </Grid>
-      </div>
+      </React.Fragment>
     );
   }
 }

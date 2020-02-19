@@ -9,14 +9,14 @@ class Home extends React.Component {
     //const {classes} = this.props;
     const {appStyle} = this.props;
     return (
-      <React.Fragment>
+      <div className={appStyle.root}>
         <Drawer open={true} />
         <main className={appStyle.content}>
           <Container maxWidth="lg" className={appStyle.container}>
             Home page content
           </Container>
         </main>
-      </React.Fragment>
+      </div>
     );
   }
 }

@@ -10,7 +10,7 @@ class VMs extends React.Component {
     const {appStyle, match, history} = this.props;
     const {url} = match;
     return (
-      <React.Fragment>
+      <div className={appStyle.root}>
         <Drawer open={true} />
         <main className={appStyle.content}>
           <Container maxWidth="lg" className={appStyle.container}>
@@ -43,7 +43,7 @@ class VMs extends React.Component {
             />
           </Container>
         </main>
-      </React.Fragment>
+      </div>
     );
   }
 }
