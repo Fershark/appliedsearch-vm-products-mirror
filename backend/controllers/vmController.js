@@ -10,7 +10,7 @@ const VM = require('../models/VM');
 const Action = require('../models/Action');
 const nodemailer = require("nodemailer");
 const authorize = require('../utils/authorize');
-const actionController = require('../controllers/actionController')
+const actionController = require('../controllers/actionController');
 
 const sleep = async ms => {
   return new Promise(f => {
@@ -105,18 +105,50 @@ const sendPasswdToUser = (vm, user_email) => {
   });
 }
 
+exports.getVMS = async (req, res, next) => {
+
+  const options = {
+    hostname: 'api.digitalocean.com',
+    port: 443,
+    path: '/v2/droplets?tag_name=' + req.user.id,
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+    }
+  }
+
+  try{
+    //get info from local db
+    let vmsDataLocal = await VM.getByUserId(req.user.id);
+
+    //get info from DO
+    let vmsDataRemote = await RequestHTTPS.get(options);
+  
+    // console.log(vmsDataLocal[0]);
+    // console.log(vmsDataRemote);
+
+    vmsDataRemote.droplets.forEach(droplet => {
+      droplet.products = vmsDataLocal[0]
+                    .find(vm => vm.id == droplet.id).products;
+    });  
+
+    res.status(200).json(vmsDataRemote.droplets);
+  }catch(err){
+    res.status(404).json(err)
+    console.log("ERROR from getVM")
+    console.log(err);
+  }
+};
+
 exports.getVM = async (req, res, next) => {
   let vm_id = req.params.id;
   console.log("Get VM info of id = " + vm_id);
 
   try{
     //validate user is vm's owner
-    let isOwner = await VM.checkOwner(req.user.id, vm_id);
-    console.log("isOwner: ", isOwner[0][0].result);
-    if(isOwner[0][0].result == 0) {
-      throw new Error("User is not the vm's owner!")
-    }
-
+    await authorize.checkOwnership(req.user.id, vm_id);
+  
     let data = await getDroplet(vm_id);
     let result = await VM.getById(vm_id);
 
@@ -256,15 +288,13 @@ exports.createVM = async (req, res, next) => {
 
 };
 
-exports.deleteAllVMsOfUser = async (req, res, next) => {
+/*exports.deleteAllVMsOfUser = async (req, res, next) => {
   console.log("deleteAllVMsOfUser");
-
-  // console.log(req.query["user_id"]);
 
   const options = {
     hostname: 'api.digitalocean.com',
     port: 443,
-    path: '/v2/droplets?tag_name=' + req.query["user_id"],
+    path: '/v2/droplets?tag_name=' + req.user.id,
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -273,7 +303,32 @@ exports.deleteAllVMsOfUser = async (req, res, next) => {
   }
 
   try {
-    var data = await RequestHTTPS.delete(options)
+    //validate
+    //1. TODO: get vm_ids of a user
+
+    //2. all actions on vm must not be "in-progess", wait until all done
+    let isBusy = await Action.checkBusyVM(vm_id);
+    console.log("isBusy: ", isBusy[0][0].result);
+    
+    while(isBusy[0][0].result == 1) {
+      await sleep(5000);
+      isBusy = await Action.checkBusyVM(vm_id);
+      console.log("isBusy: ", isBusy[0][0].result);
+    }
+
+    let data = await RequestHTTPS.delete(options);
+
+    //delete vm on local db
+    let deleteResult = await VM.deleteVM(vm_id);
+
+    //TODO: CALL /update_do_vms from QUANG
+    let VMSsummary = await VM.getVMSsummary();
+    console.log("VMSsummary: ", VMSsummary[0][0].result);
+
+    if(deleteResult[0].affectedRows == 1)
+      res.status(200).json(data);
+    else
+      throw new Error('Cannot delete the VM, or VM does not exist');
 
     res.status(200).json(data)
 
@@ -282,7 +337,7 @@ exports.deleteAllVMsOfUser = async (req, res, next) => {
     console.log("ERROR from deleteAllVMsOfUser")
     console.log(err);
   }
-};
+};*/
 
 exports.deleteVM = async (req, res, next) => {
   console.log("Delete VM");
@@ -327,11 +382,13 @@ exports.deleteVM = async (req, res, next) => {
     if(deleteResult[0].affectedRows == 1)
       res.status(200).json(data);
     else
-      throw new Error('Cannot delete the VM');
+      throw new Error('Cannot delete the VM, or VM does not exist');
 
   } catch (err) {
     console.log("ERROR from deleteVM ", err);
-    res.status(404).json(err)
+    res.status(404).json({
+      "message": err.message
+    });
   }
 };
 

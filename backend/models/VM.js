@@ -9,6 +9,10 @@ class VMs {
         return db.execute(`SELECT * FROM VMS WHERE id = ${id};`);
     }
 
+    static getByUserId(uid) {
+        return db.execute(`SELECT * FROM VMS WHERE user_id = ${uid};`);
+    }
+
     static getProducts(id){
         return db.execute(`SELECT products FROM VMS WHERE id=${id};`)
     }
