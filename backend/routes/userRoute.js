@@ -5,8 +5,9 @@ const isAuth = require('../utils/auth');
 // ALL ROUTES OF USERS
 // prefix: /users
 
-router.get('/', isAuth, usersController.getAllUsers);
 router.post('/create', usersController.create);
-router.post('/edit', isAuth, usersController.edit);
+
+router.put('/edit', isAuth, usersController.edit);
+router.get('/', isAuth, usersController.getUser);
 
 module.exports = router;

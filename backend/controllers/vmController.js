@@ -2,12 +2,15 @@ const RequestHTTPS = require('../utils/requestHTTPS');
 const {
   DIGITAL_OCEAN_API_TOKEN,
   GMAIL_PASSWD,
-  GMAIL_USER
+  GMAIL_USER,
+  TEST_MAIL
 } = require('../config');
 
 const VM = require('../models/VM');
 const Action = require('../models/Action');
 const nodemailer = require("nodemailer");
+const authorize = require('../utils/authorize');
+const actionController = require('../controllers/actionController');
 
 const sleep = async ms => {
   return new Promise(f => {
@@ -75,11 +78,11 @@ const sendPasswdToUser = (vm, user_email) => {
       pass: GMAIL_PASSWD
     }
   });
-  
+
   var mailOptions = {
     from: GMAIL_PASSWD,
     to: user_email,
-    subject: 'Your New VM: ' + vm.name, 
+    subject: 'Your New VM: ' + vm.name,
     text: `Your new VM is all set to go! You can access it using the following credentials:
 
     VM Name: ${vm.name}
@@ -92,8 +95,8 @@ const sendPasswdToUser = (vm, user_email) => {
     Happy Coding,
     Team VM Service`
   };
-  
-  transporter.sendMail(mailOptions, function(error, info){
+
+  transporter.sendMail(mailOptions, function (error, info) {
     if (error) {
       console.log(error);
     } else {
@@ -102,32 +105,71 @@ const sendPasswdToUser = (vm, user_email) => {
   });
 }
 
+exports.getVMS = async (req, res, next) => {
+
+  const options = {
+    hostname: 'api.digitalocean.com',
+    port: 443,
+    path: '/v2/droplets?tag_name=' + req.user.id,
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+    }
+  }
+
+  try{
+    //get info from local db
+    let vmsDataLocal = await VM.getByUserId(req.user.id);
+
+    //get info from DO
+    let vmsDataRemote = await RequestHTTPS.get(options);
+  
+    // console.log(vmsDataLocal[0]);
+    // console.log(vmsDataRemote);
+
+    vmsDataRemote.droplets.forEach(droplet => {
+      droplet.products = vmsDataLocal[0]
+                    .find(vm => vm.id == droplet.id).products;
+    });  
+
+    res.status(200).json(vmsDataRemote.droplets);
+  }catch(err){
+    res.status(404).json(err)
+    console.log("ERROR from getVM")
+    console.log(err);
+  }
+};
+
 exports.getVM = async (req, res, next) => {
-  // Item.findByItemId(req.params.item_id)
-  //     .then(([rows, fields]) => {
-  //         rows.forEach((currentValue, index, array) => {
-  //           Utils.toBoolean(currentValue, 'isActive');
-  //           array[index] = currentValue;
-  //         });
-  //         res.status(200).json(rows[0]);
-  //     }).catch(err => {
-  //         console.log(err);
-  //     });
+  let vm_id = req.params.id;
+  console.log("Get VM info of id = " + vm_id);
 
-  let data = await getDroplet(req.params.id);
-  res.status(200).json(data)
+  try{
+    //validate user is vm's owner
+    await authorize.checkOwnership(req.user.id, vm_id);
+  
+    let data = await getDroplet(vm_id);
+    let result = await VM.getById(vm_id);
 
+    data.droplet.products = result[0][0].products;
+    res.status(200).json(data.droplet);
+  }catch(err){
+    res.status(404).json(err)
+    console.log("ERROR from getVM")
+    console.log(err);
+  }
 };
 
 exports.createVM = async (req, res, next) => {
   console.log("Create VM");
 
-  //   if (req.user == null) {
-  //     res.status(400).json({
-  //       message: "The user should be provided, add the callback to the router to check if the user is logged"
-  //     });
-  //     return;
-  //   }
+  if (req.user == null) {
+    res.status(400).json({
+      message: "The user should be provided, add the callback to the router to check if the user is logged"
+    });
+    return;
+  }
 
   const options = {
     hostname: 'api.digitalocean.com',
@@ -140,41 +182,32 @@ exports.createVM = async (req, res, next) => {
     }
   }
 
-  // example req.body
-  // {
-  //   "user_id": 1,
-  //   "config_details":{
-  //   "names": ["example.com1"],
-  //   "region": "nyc3",
-  //   "size": "s-1vcpu-1gb",
-  //   "image": "ubuntu-16-04-x64",
-  //   "ssh_keys": null,
-  //   "backups": false,
-  //   "ipv6": false,
-  //   "private_networking": false,
-  //   "monitoring": false
-  //   }
-  // }
-
   let password = "csis4495";
-  let postData = req.body.config_details;
-  //used user_id to tag the VM
-  postData.tags = [req.body.user_id + ""];
+  let postData = req.body;
+  //add default values
+  postData.ssh_key = null;
+  postData.backups = false;
+  postData.ipv6 = false;
+  postData.private_networking = false;
+  postData.monitoring = false;
+  //tag vm with user.id
+  postData.tags = [req.user.id + ""];
   //add default password
   postData.user_data = `#cloud-config
   users:
   - name: vm-service
-    sudo: ['ALL=(ALL) NOPASSWD:ALL']
     groups: sudo
-    
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLYPP/fHevjbng9Y+4pBtPxfJuyxAQGWhldViQiVt07uN577BmtAooEZf3uZKDbA9JCTDlcfQRwsCsyJZuebDAFvpRVidwhrvafLYHmBXFYzmR546m5S+bFAgeXQcxdgQkHfgF8Vuz5aA0XN+gtIYTGPwpalPJTzm03uHfxkut/YsubhlqyLI5jzYXkTfRc1vRRaCwh3ZnHwUZqbW8zxzwGkMpMGw9ZKBEBL7YhsnXBhXYOLJ600Sb8wTxN1moV5UiITgH0ohAfqlHxZG0pdwb5OhweWYUG5Ldgx7jK98Ti9Y5WYGzNdzSEBKqdj+ksC6B56waEnZ0D/nQ0rrR1K7X nvdha@nvdhau
+
   chpasswd:
     list: |
       root:${password}
-      vm-service:${password}
     expire: True`;
 
-    // ssh-authorized-keys:
-    // - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLYPP/fHevjbng9Y+4pBtPxfJuyxAQGWhldViQiVt07uN577BmtAooEZf3uZKDbA9JCTDlcfQRwsCsyJZuebDAFvpRVidwhrvafLYHmBXFYzmR546m5S+bFAgeXQcxdgQkHfgF8Vuz5aA0XN+gtIYTGPwpalPJTzm03uHfxkut/YsubhlqyLI5jzYXkTfRc1vRRaCwh3ZnHwUZqbW8zxzwGkMpMGw9ZKBEBL7YhsnXBhXYOLJ600Sb8wTxN1moV5UiITgH0ohAfqlHxZG0pdwb5OhweWYUG5Ldgx7jK98Ti9Y5WYGzNdzSEBKqdj+ksC6B56waEnZ0D/nQ0rrR1K7X nvdha@nvdhau
+  // ssh-authorized-keys:
+  // - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLYPP/fHevjbng9Y+4pBtPxfJuyxAQGWhldViQiVt07uN577BmtAooEZf3uZKDbA9JCTDlcfQRwsCsyJZuebDAFvpRVidwhrvafLYHmBXFYzmR546m5S+bFAgeXQcxdgQkHfgF8Vuz5aA0XN+gtIYTGPwpalPJTzm03uHfxkut/YsubhlqyLI5jzYXkTfRc1vRRaCwh3ZnHwUZqbW8zxzwGkMpMGw9ZKBEBL7YhsnXBhXYOLJ600Sb8wTxN1moV5UiITgH0ohAfqlHxZG0pdwb5OhweWYUG5Ldgx7jK98Ti9Y5WYGzNdzSEBKqdj+ksC6B56waEnZ0D/nQ0rrR1K7X nvdha@nvdhau
   console.log("POST DATA");
   console.log(postData);
 
@@ -184,55 +217,68 @@ exports.createVM = async (req, res, next) => {
     console.log("RESPONE DATA");
     console.log(data);
 
-    //add vm_id to req.body
-    req.body.vm_id = data.droplets[0].id;
-
     console.log("NEW REQUEST DATA");
     console.log(req.body);
+    let vm_id = data.droplets[0].id;
+    let action_id = 0;
 
-    //Create action
-    let action = {
-      "vm_id": req.body.vm_id,
-      "type": "create",
-      "status": Action.STATUS_IN_PROGRESS()
-    }
+    //Add VM
+    VM.addVM({
+      "vm_id": vm_id,
+      "user_id": req.user.id
+    }).then(([rows, fields]) => {
+      //Create action
+      // let action = {
+      //   "vm_id": vm_id,
+      //   "type": "create",
+      //   "status": Action.STATUS_IN_PROGRESS()
+      // }
+      // return Action.addAction(action);
+      return actionController._create({
+        "vm_id": vm_id,
+        "type": Action.TYPE_CREATE()
+      });
 
+    }).then(([rows, fields]) => {
+      action_id = rows.insertId; //get action_id
+    }).catch(err => {
+      console.log(err);
+      throw new Error('Create VM and Action on server fail!')
+    });
 
     // Wait for it to come online
     let droplet = null;
 
     do {
       await sleep(5000);
-      const result = await getDroplet(req.body.vm_id);
+      const result = await getDroplet(vm_id);
       droplet = result.droplet;
       console.log("Droplet status: " + droplet.status);
     } while (droplet.status === "new");
 
-    VM.addVM(req.body)
-      .then(([rows, fields]) => {
+    //send email
+    sendPasswdToUser({
+      "name": droplet.name,
+      "ipV4": droplet.networks.v4[0].ip_address,
+      "username": "root",
+      "password": password
+    }, TEST_MAIL)
 
-        //send email
-        sendPasswdToUser({
-                          "name": droplet.name, 
-                          "ipV4": droplet.networks.v4[0].ip_address,
-                          "username": "root",
-                          "password": password
-                          
-                        }, 
-                          //'nvdhau@gmail.com')
-                           'ferchriquelme@gmail.com')
-                          // 'quang.le205@gmail.com')
+    ///update action status
+    // Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
+    await actionController._update({
+      "action_id": action_id,
+      "status": Action.STATUS_COMPLETED()
+    });
 
-        Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
+    //update ipV4 in localDB
+    await VM.updateIpV4(droplet.networks.v4[0].ip_address, vm_id);
 
-        res.status(201).json(droplet);
-      });
+    //TODO: CALL /update_do_vms from QUANG
+    let VMSsummary = await VM.getVMSsummary();
+    console.log("VMSsummary: ", VMSsummary[0][0].result);
 
-    let action_id = null;
-    Action.addAction(action)
-      .then(([rows, fields]) => {
-        action_id = rows.insertId;
-      });
+    res.status(201).json(droplet);
 
   } catch (err) {
     res.status(404).json(err)
@@ -242,15 +288,13 @@ exports.createVM = async (req, res, next) => {
 
 };
 
-exports.deleteAllVMsOfUser = async (req, res, next) => {
+/*exports.deleteAllVMsOfUser = async (req, res, next) => {
   console.log("deleteAllVMsOfUser");
-
-  // console.log(req.query["user_id"]);
 
   const options = {
     hostname: 'api.digitalocean.com',
     port: 443,
-    path: '/v2/droplets?tag_name=' + req.query["user_id"],
+    path: '/v2/droplets?tag_name=' + req.user.id,
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -259,7 +303,32 @@ exports.deleteAllVMsOfUser = async (req, res, next) => {
   }
 
   try {
-    var data = await RequestHTTPS.delete(options)
+    //validate
+    //1. TODO: get vm_ids of a user
+
+    //2. all actions on vm must not be "in-progess", wait until all done
+    let isBusy = await Action.checkBusyVM(vm_id);
+    console.log("isBusy: ", isBusy[0][0].result);
+    
+    while(isBusy[0][0].result == 1) {
+      await sleep(5000);
+      isBusy = await Action.checkBusyVM(vm_id);
+      console.log("isBusy: ", isBusy[0][0].result);
+    }
+
+    let data = await RequestHTTPS.delete(options);
+
+    //delete vm on local db
+    let deleteResult = await VM.deleteVM(vm_id);
+
+    //TODO: CALL /update_do_vms from QUANG
+    let VMSsummary = await VM.getVMSsummary();
+    console.log("VMSsummary: ", VMSsummary[0][0].result);
+
+    if(deleteResult[0].affectedRows == 1)
+      res.status(200).json(data);
+    else
+      throw new Error('Cannot delete the VM, or VM does not exist');
 
     res.status(200).json(data)
 
@@ -268,103 +337,153 @@ exports.deleteAllVMsOfUser = async (req, res, next) => {
     console.log("ERROR from deleteAllVMsOfUser")
     console.log(err);
   }
+};*/
+
+exports.deleteVM = async (req, res, next) => {
+  console.log("Delete VM");
+
+  let vm_id = req.params.id;
+
+  const options = {
+    hostname: 'api.digitalocean.com',
+    port: 443,
+    path: '/v2/droplets/' + vm_id,
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+    }
+  }
+
+  try {
+    //validate
+    //1. user is vm's owner
+    authorize.checkOwnership(req.user.id, vm_id);
+
+    //2. all actions on vm must not be "in-progess", wait until all done
+    let isBusy = await Action.checkBusyVM(vm_id);
+    console.log("isBusy: ", isBusy[0][0].result);
+    
+    while(isBusy[0][0].result == 1) {
+      await sleep(5000);
+      isBusy = await Action.checkBusyVM(vm_id);
+      console.log("isBusy: ", isBusy[0][0].result);
+    }
+
+    let data = await RequestHTTPS.delete(options);
+
+    //delete vm on local db
+    let deleteResult = await VM.deleteVM(vm_id);
+
+    //TODO: CALL /update_do_vms from QUANG
+    let VMSsummary = await VM.getVMSsummary();
+    console.log("VMSsummary: ", VMSsummary[0][0].result);
+
+    if(deleteResult[0].affectedRows == 1)
+      res.status(200).json(data);
+    else
+      throw new Error('Cannot delete the VM, or VM does not exist');
+
+  } catch (err) {
+    console.log("ERROR from deleteVM ", err);
+    res.status(404).json({
+      "message": err.message
+    });
+  }
 };
 
 
 exports.getAllDistributions = async (req, res, next) => {
 
   const options = {
-      hostname: 'api.digitalocean.com',
-      port: 443,
-      path: '/v2/images?page=1&per_page=100&type=distribution',
-      method: 'GET',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
-      }
+    hostname: 'api.digitalocean.com',
+    port: 443,
+    path: '/v2/images?page=1&per_page=100&type=distribution',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+    }
   }
 
   try {
-      var data = await RequestHTTPS.get(options)
+    var data = await RequestHTTPS.get(options)
 
-      const distributionNames = ['Ubuntu', 'FreeBSD', 'Fedora', 'Debian', 'CentOS'];
+    const distributionNames = ['Ubuntu', 'FreeBSD', 'Fedora', 'Debian', 'CentOS'];
 
-      let distributions = [];
+    let distributions = [];
 
-      distributionNames.forEach(name => {
-          distributions.push({
-              name: name,
-              data: data.images.filter(image => {
-                  return image.distribution == name
-              }).map(image => {
-                  return {
-                      "id": image.id,
-                      "name": image.name,
-                      "slug": image.slug
-                  }
-              })
-          })
-      });
+    distributionNames.forEach(name => {
+      distributions.push({
+        name: name,
+        data: data.images.filter(image => {
+          return image.distribution == name
+        }).map(image => {
+          return {
+            "id": image.id,
+            "name": image.name,
+            "slug": image.slug
+          }
+        })
+      })
+    });
 
+    // distributions = data["images"];
 
-
-
-      // distributions = data["images"];
-
-      res.status(200).json(distributions)
+    res.status(200).json(distributions)
   } catch (err) {
-      res.status(404).json(err)
-      console.log("ERROR from DO-Controller: getAllDistributions")
-      console.log(err);
+    res.status(404).json(err)
+    console.log("ERROR from DO-Controller: getAllDistributions")
+    console.log(err);
   }
 };
 
 exports.getAllSizes = async (req, res, next) => {
 
   const options = {
-      hostname: 'api.digitalocean.com',
-      port: 443,
-      path: '/v2/sizes',
-      method: 'GET',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
-      }
+    hostname: 'api.digitalocean.com',
+    port: 443,
+    path: '/v2/sizes',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+    }
   }
 
   try {
-      var data = await RequestHTTPS.get(options)
+    var data = await RequestHTTPS.get(options)
 
-      res.status(200).json(data.sizes.filter(size => size.available == true))
+    res.status(200).json(data.sizes.filter(size => size.available == true))
 
   } catch (err) {
-      res.status(404).json(err)
-      console.log("ERROR from DO-Controller: getAllSizes")
-      console.log(err);
+    res.status(404).json(err)
+    console.log("ERROR from DO-Controller: getAllSizes")
+    console.log(err);
   }
 };
 
 exports.getAllRegions = async (req, res, next) => {
 
   const options = {
-      hostname: 'api.digitalocean.com',
-      port: 443,
-      path: '/v2/regions',
-      method: 'GET',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
-      }
+    hostname: 'api.digitalocean.com',
+    port: 443,
+    path: '/v2/regions',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+    }
   }
 
   try {
-      var data = await RequestHTTPS.get(options)
+    var data = await RequestHTTPS.get(options)
 
-      res.status(200).json(data.regions)
+    res.status(200).json(data.regions)
 
   } catch (err) {
-      res.status(404).json(err)
-      console.log("ERROR from DO-Controller: getAllRegions")
-      console.log(err);
+    res.status(404).json(err)
+    console.log("ERROR from DO-Controller: getAllRegions")
+    console.log(err);
   }
 };
