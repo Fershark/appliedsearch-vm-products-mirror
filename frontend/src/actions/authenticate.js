@@ -6,7 +6,6 @@ import {
   API_GET_USER,
 } from '../config/endpoints-conf';
 //import axios from 'axios';
-import {toast} from 'react-toastify';
 // import * as firebase from 'firebase';
 import firebase from 'firebase/app';
 import 'firebase/auth';
@@ -37,12 +36,8 @@ export const doSignInWithEmailAndPassword = (email, password) => {
       .signInWithEmailAndPassword(email, password)
       .then(res => {
         console.log('AUTHENTICATED');
-        const message = 'Successfully signin account';
-        dispatch({
-          type: AUTH_LOGIN_USER,
-          payload: {message, success: true},
-        });
 
+        const message = 'Successfully signin account';
         const user = {
           uid: res.user.uid,
           email: res.user.email,
@@ -50,11 +45,9 @@ export const doSignInWithEmailAndPassword = (email, password) => {
           photoURL: res.user.photoURL,
         };
 
-        localStorage.setItem('app_user', JSON.stringify(user));
-
         dispatch({
-          type: AUTH_PROCESSING,
-          payload: false,
+          type: AUTH_LOGIN_USER,
+          payload: {message, success: true, user: user},
         });
       })
       .catch(err => {
@@ -62,23 +55,21 @@ export const doSignInWithEmailAndPassword = (email, password) => {
         const {message} = err;
         dispatch({
           type: AUTH_LOGIN_USER,
-          payload: {message, success: false},
+          payload: {message, success: false, user: null},
         });
-
+      })
+      .finally(() =>
         dispatch({
           type: AUTH_PROCESSING,
           payload: false,
-        });
-
-        toast.error(message);
-      });
+        }),
+      );
   };
 };
 
 // firebase signout
 export const doSignOut = props => {
   fireBaseApp.auth().signOut();
-  localStorage.setItem('app_user', null);
   props.history.push('/login');
 };
 

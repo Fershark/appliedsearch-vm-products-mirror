@@ -1,25 +1,13 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {
-  Avatar,
-  Link,
-  Grid,
-  Container,
-  LinearProgress,
-  Typography,
-  TextField,
-  Button,
-} from '@material-ui/core';
+import {Avatar, Link, Grid, Container, LinearProgress, Typography, TextField, Button} from '@material-ui/core';
+import {toast} from 'react-toastify';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import {withStyles} from '@material-ui/core/styles';
 import styles from '../assets/jss/views/login';
-import {AUTH_LOGIN_USER} from '../config/endpoints-conf';
 import {ToastContainer} from 'react-toastify';
-import {
-  doSignInWithEmailAndPassword,
-  getCurrentUserAuth,
-} from '../actions/authenticate';
+import {doSignInWithEmailAndPassword} from '../actions/authenticate';
 import AppBar from '../components/AppBar';
 
 class Login extends React.Component {
@@ -30,21 +18,20 @@ class Login extends React.Component {
   }
 
   componentDidMount() {
-    this.props.reset();
-    getCurrentUserAuth().then(user => {
-      if (user) {
-        console.log('USER SIGNED IN, SO REDIRECT TO HOME PAGE');
-        this.props.history.push('/home');
-      } else {
-        console.log('USER NOT LOGIN YET');
-        this.props.history.push('/login');
-      }
-    });
+    if (this.props.user === null) {
+      console.log('USER NOT LOGIN YET');
+      this.props.history.push('/login');
+    } else {
+      console.log('USER SIGNED IN, SO REDIRECT TO HOME PAGE');
+      this.props.history.push('/home');
+    }
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.auth_message.success !== this.props.auth_message.success) {
+    if (this.props.user !== null) {
       this.props.history.push('/home');
+    } else if (this.props.auth_message.message !== '') {
+      toast.error(this.props.auth_message.message);
     }
   }
 
@@ -71,10 +58,7 @@ class Login extends React.Component {
             <Typography component="h1" variant="h5">
               Sign in
             </Typography>
-            <form
-              className={classes.form}
-              noValidate
-              onSubmit={this.handleLogin}>
+            <form className={classes.form} noValidate onSubmit={this.handleLogin}>
               <TextField
                 variant="outlined"
                 margin="normal"
@@ -97,12 +81,7 @@ class Login extends React.Component {
                 id="password"
                 autoComplete="current-password"
               />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={classes.submit}>
+              <Button type="submit" fullWidth variant="contained" color="primary" className={classes.submit}>
                 Sign In
               </Button>
               <Grid container className={classes.gridContainer}>
@@ -133,19 +112,14 @@ const mapStateToProps = state => {
   return {
     auth_processing: state.auth.auth_processing,
     auth_message: state.auth.auth_message,
+    user: state.auth.user,
   };
 };
 
 const mapDispatchtoProps = dispatch => {
   return {
-    login: (email, password) =>
-      dispatch(doSignInWithEmailAndPassword(email, password)),
-    reset: () =>
-      dispatch({type: AUTH_LOGIN_USER, payload: {message: '', success: false}}),
+    login: (email, password) => dispatch(doSignInWithEmailAndPassword(email, password)),
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchtoProps,
-)(withStyles(styles)(Login));
+export default connect(mapStateToProps, mapDispatchtoProps)(withStyles(styles)(Login));
