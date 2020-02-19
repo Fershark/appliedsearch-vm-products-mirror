@@ -3,11 +3,12 @@ import {withStyles} from '@material-ui/core/styles';
 import {Container} from '@material-ui/core';
 import homeStyles from '../assets/jss/views/home';
 import Drawer from '../components/Drawer';
+import {getUserIdToken} from '../actions/authenticate';
 
 class Home extends React.Component {
   render() {
-    //const {classes} = this.props;
     const {appStyle} = this.props;
+    getUserIdToken().then(token => console.log({token}));
     return (
       <div className={appStyle.root}>
         <Drawer open={true} />
