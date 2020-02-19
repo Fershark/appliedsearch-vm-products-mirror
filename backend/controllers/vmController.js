@@ -234,7 +234,7 @@ exports.createVM = async (req, res, next) => {
 
     ///update action status
     // Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
-    actionController._update({
+    await actionController._update({
       "action_id": action_id,
       "status": Action.STATUS_COMPLETED()
     });

@@ -201,3 +201,32 @@ exports.updateStatus = async (req, res, next) => {
 		});
 	}
 };
+
+
+exports.getNewActions = async (req, res, next) => {
+	console.log("get new actions");
+
+	try {
+		//TODO: how to authorize our app
+
+		let result = await Action.getNewActions();
+		
+		let data = [];
+
+		console.log(result[0]);
+		result[0].forEach(row => {
+				data.push({
+					"vm": JSON.parse(row.vm),
+					"actions": JSON.parse(row.actions),
+				});
+		});
+
+		res.status(200).json(data);
+		
+	} catch (err) {
+		console.log(err);
+		res.status(400).json({
+			message: err.message
+		});
+	}
+};

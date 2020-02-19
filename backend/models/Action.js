@@ -105,6 +105,31 @@ class Actions {
     )
   }
 
+  static getNewActions(){//get 10 new actions
+    return db.execute(
+      `select temp.vm, concat('[', group_concat(temp.action), ']') as actions from (select concat('{', '"id":"', VMS.id,'",' , '"user_id":"', VMS.user_id,'",' '"ipV4":"', VMS.ipV4,'"}') as vm, concat('{', '"id":"', ACTIONS.id,'",' , '"type":"', type,'",' '"product":', product, '}') as action from ACTIONS inner join VMS on ACTIONS.vm_id = VMS.id where status='new' order by ACTIONS.id limit 10) as temp group by temp.vm;`
+    )
+  }
+
 }
 
 module.exports = Actions;
+
+// `select vm_id from (select vm_id, concat('{', '"id":"', id,'",' , 
+// '"type":"', type,'",'
+// '"product":', product, '}') as action from ACTIONS where status='new' order by id limit 10);
+// `;
+
+// ` select id as vm_id, concat('{"vm":{', '"id":"', id,'",' , 
+// '"user_id":"', user_id,'",'
+// '"ipV4":"', ipV4,'"}') as vm from VMS;
+// `
+
+// `select concat('{"vm":{', '"id":"', id,'",' , 
+// '"user_id":"', user_id,'",'
+// '"ipV4":"', ipV4,'"},', temp1.new_actions,'}') as result from VMS inner join
+// (select temp.vm_id, concat('"actions":[' ,group_concat(temp.action),']') as new_actions from (select vm_id, concat('{', '"id":"', id,'",' , '"type":"', type,'",' '"product":', product, '}') as action from ACTIONS where status='new' order by id limit 10) as temp group by temp.vm_id) as temp1 on VMS.id = temp1.vm_id;`
+
+// `select concat('[', group_concat(concat('{"vm":', temp1.vm, ',"actions":', temp1.actions, '}')), ']') as result from (select temp.vm, concat('[', group_concat(temp.action), ']') as actions from (select concat('{', '"id":"', VMS.id,'",' , 
+// '"user_id":"', VMS.user_id,'",'
+// '"ipV4":"', VMS.ipV4,'"}') as vm, concat('{', '"id":"', ACTIONS.id,'",' , '"type":"', type,'",' '"product":', product, '}') as action from ACTIONS inner join VMS on ACTIONS.vm_id = VMS.id where status='new' order by ACTIONS.id limit 10) as temp group by temp.vm) as temp1;`

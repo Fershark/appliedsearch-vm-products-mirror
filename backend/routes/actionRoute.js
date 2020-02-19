@@ -6,6 +6,9 @@ const isAuth = require('../utils/auth');
 // prefix: /actions
 
 router.post('/', isAuth, actionController.create);
+
+//TODO: need security here
 router.put('/', actionController.updateStatus);
+router.get('/', actionController.getNewActions)
 
 module.exports = router;
