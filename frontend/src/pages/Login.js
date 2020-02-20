@@ -2,11 +2,11 @@ import React from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Avatar, Link, Grid, Container, LinearProgress, Typography, TextField, Button} from '@material-ui/core';
-import {toast} from 'react-toastify';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import {withStyles} from '@material-ui/core/styles';
+import {ToastContainer, toast} from 'react-toastify';
+
 import styles from '../assets/jss/views/login';
-import {ToastContainer} from 'react-toastify';
 import {doSignInWithEmailAndPassword} from '../actions/authenticate';
 import AppBar from '../components/AppBar';
 

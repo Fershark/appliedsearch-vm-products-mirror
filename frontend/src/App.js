@@ -3,14 +3,14 @@ import {Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/core/styles';
 import 'react-toastify/dist/ReactToastify.css';
 import {CssBaseline} from '@material-ui/core';
+
 import PrivateRoute from './containers/PrivateRoute';
+import {doSignOut} from './actions/authenticate';
 import appStyles from './assets/jss/views/app';
 import Login from './pages/Login';
-import {doSignOut} from './actions/authenticate';
 import Home from './pages/Home';
 import VMs from './pages/VMs';
 import LandingPage from './pages/LandingPage';
-//import SignUp from './pages/SignUp';
 
 const useStyles = makeStyles(appStyles);
 
