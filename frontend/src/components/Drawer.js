@@ -32,25 +32,12 @@ const useStyles = makeStyles(theme => ({
       width: theme.spacing(9),
     },
   },
-  appBarSpacer: theme.mixins.toolbar,
-  content: {
-    flexGrow: 1,
-    height: '100vh',
-    overflow: 'auto',
-  },
-  container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
-  },
   paper: {
     margin: 0,
     padding: 0,
   },
   listItem: {
     color: theme.palette.primary.dark,
-  },
-  icon: {
-    color: theme.palette.primary.contrastText,
   },
 }));
 
