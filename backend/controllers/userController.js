@@ -46,9 +46,12 @@ exports.create = async (req, res, next) => {
     if (user.id !== undefined)
       User.deleteUser(user.id);
 
-    res.status(400).json({
-      message: "unable to create record"
-    });
+    let message = "This email has already been used.";
+    if (err.errorInfo != undefined && err.errorInfo != null && err.errorInfo.message != null) {
+      message = err.errorInfo.message;
+    }
+
+    res.status(400).json({message});
   };
 
 };
