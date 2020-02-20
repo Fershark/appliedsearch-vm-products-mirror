@@ -1,4 +1,4 @@
-import {AUTH_SIGNUP_USER, AUTH_LOGIN_USER, AUTH_PROCESSING, AUTH_LOGOUT} from '../config/endpoints-conf';
+import {AUTH_LOGIN_USER, AUTH_PROCESSING, AUTH_LOGOUT} from '../config/endpoints-conf';
 
 const initialState = {
   auth_processing: false,
@@ -19,7 +19,6 @@ const authReducer = (state = initialState, action) => {
           success: false,
         },
       };
-    case AUTH_SIGNUP_USER:
     case AUTH_LOGIN_USER:
       localStorage.setItem('app_user', JSON.stringify(action.payload.user));
       return {

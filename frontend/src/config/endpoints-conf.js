@@ -1,5 +1,4 @@
 // ACTION 
-export const AUTH_SIGNUP_USER = 'AUTH_SIGNUP_USER'; 
 export const AUTH_LOGIN_USER = 'AUTH_LOGIN_USER';
 export const AUTH_PROCESSING  = 'AUTH_PROCESSING';
 export const AUTH_LOGOUT = 'AUTH_LOGOUT';

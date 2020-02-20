@@ -1,10 +1,9 @@
 import {
-  AUTH_SIGNUP_USER,
-  API_CREATE_USER,
-  AUTH_LOGIN_USER,
   AUTH_PROCESSING,
-  API_GET_USER,
+  AUTH_LOGIN_USER,
   AUTH_LOGOUT,
+  API_CREATE_USER,
+  API_GET_USER,
 } from '../config/endpoints-conf';
 //import axios from 'axios';
 // import * as firebase from 'firebase';
@@ -25,21 +24,23 @@ const fireBaseConfig = {
 
 const fireBaseApp = firebase.initializeApp(fireBaseConfig);
 
+const processing = isProcessing => {
+  return {
+    type: AUTH_PROCESSING,
+    payload: isProcessing,
+  };
+};
+
 // firebase sign in account
 export const doSignInWithEmailAndPassword = (email, password) => {
   return dispatch => {
-    dispatch({
-      type: AUTH_PROCESSING,
-      payload: true,
-    });
+    dispatch(processing(true));
 
     fireBaseApp
       .auth()
       .signInWithEmailAndPassword(email, password)
       .then(res => {
         console.log('AUTHENTICATED');
-
-        const message = 'Successfully signin account';
         const user = {
           uid: res.user.uid,
           email: res.user.email,
@@ -49,7 +50,7 @@ export const doSignInWithEmailAndPassword = (email, password) => {
 
         dispatch({
           type: AUTH_LOGIN_USER,
-          payload: {message, success: true, user: user},
+          payload: {message: '', success: true, user},
         });
       })
       .catch(err => {
@@ -60,12 +61,7 @@ export const doSignInWithEmailAndPassword = (email, password) => {
           payload: {message, success: false, user: null},
         });
       })
-      .finally(() =>
-        dispatch({
-          type: AUTH_PROCESSING,
-          payload: false,
-        }),
-      );
+      .finally(() => dispatch(processing(false)));
   };
 };
 
@@ -73,7 +69,7 @@ export const doSignInWithEmailAndPassword = (email, password) => {
 export const doSignOut = props => {
   fireBaseApp.auth().signOut();
   store.dispatch({type: AUTH_LOGOUT, payload: null});
-  props.history.push('/login');
+  props.history.push('/');
 };
 
 // get current Auth User
@@ -112,6 +108,38 @@ export const getUserIdToken = () => {
       }
     });
   });
+};
+
+export const accountSignUp = (fullName, email, password) => {
+  return dispatch => {
+    dispatch(processing(true));
+    fireBaseApp
+      .auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then(res => {
+        console.log('SignUp Success');
+        const user = {
+          uid: res.user.uid,
+          email: res.user.email,
+          displayName: res.user.displayName,
+          photoURL: res.user.photoURL,
+        };
+
+        dispatch({
+          type: AUTH_LOGIN_USER,
+          payload: {message: '', success: true, user},
+        });
+      })
+      .catch(err => {
+        console.log('Error during the sign up');
+        const {message} = err;
+        dispatch({
+          type: AUTH_LOGIN_USER,
+          payload: {message, success: false, user: null},
+        });
+      })
+      .finally(() => dispatch(processing(false)));
+  };
 };
 
 // firebase sign up account
