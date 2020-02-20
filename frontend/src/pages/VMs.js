@@ -1,8 +1,5 @@
 import React from 'react';
-import {Container, Paper, Fab} from '@material-ui/core';
-import AddIcon from '@material-ui/icons/Add';
-import {Redirect} from 'react-router';
-import {useRouteMatch} from 'react-router-dom';
+import {Container} from '@material-ui/core';
 import {Drawer, Title, MaterialTable} from '../components';
 
 class VMs extends React.Component {
