@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import {Link, Grid, TextField, Button, LinearProgress} from '@material-ui/core';
 import Box from '@material-ui/core/Box';
@@ -13,8 +13,7 @@ import backgroundLandingImage from '../assets/images/bg-landing-page.jpg';
 
 const useStyles = makeStyles(landingPageStyles);
 
-export default props => {
-  const {history} = props;
+export default function LandingPage({history}) {
   const dispatch = useDispatch();
   const {user, auth_processing, auth_message} = useSelector(state => state.auth);
   const classes = useStyles();
@@ -25,11 +24,17 @@ export default props => {
     dispatch(accountSignUp(fullName.value, email.value, password.value));
   };
 
-  if (auth_message.success === true) {
-    history.push('/home');
-  } else if (auth_message.message !== '') {
-    toast.error(auth_message.message);
-  }
+  useEffect(() => {
+    if (auth_message.message !== '') {
+      toast.error(auth_message.message);
+    }
+  }, [auth_message.message]);
+
+  useEffect(() => {
+    if (auth_message.success === true) {
+      history.push('/home');
+    }
+  }, [auth_message.success, history]);
 
   return (
     <React.Fragment>
@@ -173,4 +178,4 @@ export default props => {
       </Grid>
     </React.Fragment>
   );
-};
+}

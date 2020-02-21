@@ -23,6 +23,7 @@ const authReducer = (state = initialState, action) => {
       localStorage.setItem('app_user', JSON.stringify(action.payload.user));
       return {
         ...state,
+        auth_processing: false,
         auth_message: {
           message: action.payload.message,
           success: action.payload.success,
