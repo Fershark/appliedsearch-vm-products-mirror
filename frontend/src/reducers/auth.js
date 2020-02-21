@@ -31,7 +31,14 @@ const authReducer = (state = initialState, action) => {
       };
     case AUTH_LOGOUT:
       localStorage.setItem('app_user', null);
-      return {...state, user: null};
+      return {
+        ...state,
+        user: null,
+        auth_message: {
+          message: '',
+          success: false,
+        },
+      };
     default:
       return state;
   }

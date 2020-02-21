@@ -5,9 +5,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import {CssBaseline} from '@material-ui/core';
 
 import PrivateRoute from './containers/PrivateRoute';
-import {doSignOut} from './actions/authenticate';
 import appStyles from './assets/jss/views/app';
 import Login from './pages/Login';
+import Logout from './pages/Logout';
 import Home from './pages/Home';
 import VMs from './pages/VMs';
 import LandingPage from './pages/LandingPage';
@@ -23,7 +23,7 @@ export default function App(props) {
       <CssBaseline />
       <Switch>
         <Route path="/login" render={props => <Login {...props} appStyle={classes} />} />
-        <Route path="/logout" exact render={props => doSignOut(props)} />
+        <Route path="/logout" exact render={props => <Logout {...props} />} />
         <PrivateRoute path="/home" component={Home} appStyle={classes} />
         <PrivateRoute path="/vms/add" component={Home} appStyle={classes} />
         <PrivateRoute path="/vms" component={VMs} appStyle={classes} />
