@@ -46,7 +46,7 @@ class Login extends React.Component {
     const {classes, appStyle} = this.props;
     return (
       <React.Fragment>
-        <AppBar open={false} />
+        <AppBar />
         <div className={appStyle.appBarSpacer} />
         {this.props.auth_processing && <LinearProgress color="secondary" />}
         <Container component="main" maxWidth="xs">

@@ -14,8 +14,7 @@ import config from '../config';
 
 const useStyles = makeStyles(appBarStyles);
 
-export default function(props) {
-  let open = props.open;
+export default function({open = false}) {
   const classes = useStyles();
   return (
     <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
