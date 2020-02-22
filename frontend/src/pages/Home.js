@@ -11,7 +11,7 @@ class Home extends React.Component {
     getUserIdToken().then(token => console.log({token}));
     return (
       <div className={appStyle.root}>
-        <Drawer open={true} />
+        <Drawer />
         <main className={appStyle.content}>
           <Container maxWidth="lg" className={appStyle.container}>
             Home page content

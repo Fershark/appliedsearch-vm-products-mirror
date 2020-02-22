@@ -41,8 +41,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function(props) {
-  let open = props.open;
+export default ({open = true}) => {
   const classes = useStyles();
   return (
     <Drawer

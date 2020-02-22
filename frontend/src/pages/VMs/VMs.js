@@ -7,7 +7,7 @@ export default function VMs({appStyle, match, history}) {
   const {url} = match;
   return (
     <div className={appStyle.root}>
-      <Drawer open={true} />
+      <Drawer />
       <main className={appStyle.content}>
         <Container maxWidth="lg" className={appStyle.container}>
           <MaterialTable

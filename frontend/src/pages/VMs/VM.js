@@ -57,7 +57,7 @@ export default function EditVM({appStyle, match, history}) {
   return (
     <div className={appStyle.root}>
       <LoadingPage open={loading} />
-      <Drawer open={true} />
+      <Drawer />
       <main className={appStyle.content}>
         <Container maxWidth="lg" className={appStyle.container}>
           <Paper className={appStyle.paper}>
