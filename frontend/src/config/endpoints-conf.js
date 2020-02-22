@@ -7,3 +7,4 @@ export const AUTH_LOGOUT = 'AUTH_LOGOUT';
 export const API_ROOT_URL = process.env.REACT_APP_ROOT_ENDPOINT_URL ? process.env.REACT_APP_ROOT_ENDPOINT_URL : "";
 export const API_CREATE_USER = API_ROOT_URL + "/api/users/create";
 export const API_GET_USER = API_ROOT_URL + "/api/users/";
+export const API_GET_VMS_DISTRIBUTIONS = API_ROOT_URL + "/api/vms/distributions/";
