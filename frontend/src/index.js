@@ -7,7 +7,6 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import reducers from './reducers';
 import App from './App';
 import config from './config';
-require('dotenv').config();
 
 ReactDOM.render(
   <Provider store={reducers}>

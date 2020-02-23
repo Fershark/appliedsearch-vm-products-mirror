@@ -6,4 +6,13 @@ export default createMuiTheme({
     primary: teal,
     secondary: amber,
   },
+  overrides: {
+    MuiLinearProgress: {
+      root: {
+        height: '10px',
+        overflow: 'hidden',
+        position: 'relative',
+      }
+    }
+  }
 });

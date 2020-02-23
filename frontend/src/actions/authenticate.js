@@ -1,15 +1,7 @@
-import {
-  AUTH_SIGNUP_USER,
-  API_CREATE_USER,
-  AUTH_LOGIN_USER,
-  AUTH_PROCESSING,
-  API_GET_USER,
-} from '../config/endpoints-conf';
-//import axios from 'axios';
-import {toast} from 'react-toastify';
-// import * as firebase from 'firebase';
 import firebase from 'firebase/app';
 import 'firebase/auth';
+
+import {AUTH_PROCESSING, AUTH_LOGIN_USER, AUTH_LOGOUT, API_CREATE_USER} from '../config/endpoints-conf';
 
 // firebase config
 const fireBaseConfig = {
@@ -24,62 +16,50 @@ const fireBaseConfig = {
 
 const fireBaseApp = firebase.initializeApp(fireBaseConfig);
 
+const processing = isProcessing => ({
+  type: AUTH_PROCESSING,
+  payload: isProcessing,
+});
+
+const loginUser = (email, password, dispatch) =>
+  fireBaseApp
+    .auth()
+    .signInWithEmailAndPassword(email, password)
+    .then(res => {
+      console.log('AUTHENTICATED');
+      const user = {
+        uid: res.user.uid,
+        email: res.user.email,
+        displayName: res.user.displayName,
+        photoURL: res.user.photoURL,
+      };
+
+      dispatch({
+        type: AUTH_LOGIN_USER,
+        payload: {message: '', success: true, user},
+      });
+    });
+
 // firebase sign in account
 export const doSignInWithEmailAndPassword = (email, password) => {
   return dispatch => {
-    dispatch({
-      type: AUTH_PROCESSING,
-      payload: true,
-    });
+    dispatch(processing(true));
 
-    fireBaseApp
-      .auth()
-      .signInWithEmailAndPassword(email, password)
-      .then(res => {
-        console.log('AUTHENTICATED');
-        const message = 'Successfully signin account';
-        dispatch({
-          type: AUTH_LOGIN_USER,
-          payload: {message, success: true},
-        });
-
-        const user = {
-          uid: res.user.uid,
-          email: res.user.email,
-          displayName: res.user.displayName,
-          photoURL: res.user.photoURL,
-        };
-
-        localStorage.setItem('app_user', JSON.stringify(user));
-
-        dispatch({
-          type: AUTH_PROCESSING,
-          payload: false,
-        });
-      })
-      .catch(err => {
-        console.log('ERROR AUTHENTICATED');
-        const {message} = err;
-        dispatch({
-          type: AUTH_LOGIN_USER,
-          payload: {message, success: false},
-        });
-
-        dispatch({
-          type: AUTH_PROCESSING,
-          payload: false,
-        });
-
-        toast.error(message);
+    loginUser(email, password, dispatch).catch(err => {
+      console.log('ERROR AUTHENTICATED');
+      const {message} = err;
+      dispatch({
+        type: AUTH_LOGIN_USER,
+        payload: {message, success: false, user: null},
       });
+    });
   };
 };
 
 // firebase signout
-export const doSignOut = props => {
+export const doSignOut = dispatch => {
   fireBaseApp.auth().signOut();
-  localStorage.setItem('app_user', null);
-  props.history.push('/login');
+  dispatch({type: AUTH_LOGOUT, payload: null});
 };
 
 // get current Auth User
@@ -87,85 +67,48 @@ export const getCurrentUserAuth = () => {
   return new Promise((resolve, reject) => {
     fireBaseApp.auth().onAuthStateChanged(user => {
       if (user) {
-        console.log('user', user);
-
-        resolve({
-          displayName: user.displayName,
-          email: user.email,
-        });
+        resolve(user);
       } else {
-        resolve(null);
+        reject(new Error('User not signed in'));
       }
     });
   });
 };
 
-export const getUserIdToken = () => {
-  return new Promise((resolve, reject) => {
-    fireBaseApp.auth().onAuthStateChanged(user => {
-      if (user) {
-        fireBaseApp
-          .auth()
-          .currentUser.getIdToken(true)
-          .then(idToken => {
-            resolve({idToken});
-          })
-          .catch(err => {
-            reject(err);
+export const getUserIdToken = () => getCurrentUserAuth().then(user => user.getIdToken());
+
+export const accountSignUp = (fullName, email, password) => {
+  return dispatch => {
+    dispatch(processing(true));
+    fetch(API_CREATE_USER, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+        phone: ' ',
+        name: fullName,
+        address: ' ',
+      }),
+    })
+      .then(res => Promise.all([res.ok, res.json()]))
+      .then(([ok, res]) => {
+        if (!ok) {
+          console.log('Error during the sign up', ok, res);
+          const {message} = res;
+          dispatch({
+            type: AUTH_LOGIN_USER,
+            payload: {message, success: false, user: null},
           });
-      } else {
-        resolve(null);
-      }
-    });
-  });
+        } else {
+          console.log('SignUp Success');
+          loginUser(email, password, dispatch);
+        }
+      });
+  };
 };
-
-// firebase sign up account
-/*
-export const accountSignUp = (json) =>  {
-    return dispatch => {
-        dispatch({
-            type: AUTH_PROCESSING,
-            payload: true
-        });
-
-        // call api
-        axios.post(API_CREATE_USER, json, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }).then(res => {
-            const message = 'Successfully create account. Please login now';
-            dispatch({
-                type: AUTH_SIGNUP_USER,
-                payload: { message, success: true}
-            })
-
-            dispatch({
-                type: AUTH_PROCESSING ,
-                payload: false
-            });
-
-            toast.success(message);
-        }).catch(err => {
-            console.log("ERR: " + err);
-            const { message } = err;
-            dispatch({
-                type: AUTH_SIGNUP_USER,
-                payload: { message, success: false}
-            })
-
-            dispatch({
-                type: AUTH_PROCESSING ,
-                payload: false
-            });
-            
-            toast.error(message);
-        })
-    }
-}
-*/
 
 /*
 export const getUserDetails = (getUserIdToken) => (id) =>  {

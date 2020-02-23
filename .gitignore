@@ -107,3 +107,6 @@ dist
 .idea
 docker-mysql-db
 .DS_Store
+
+# Paw files
+*.paw

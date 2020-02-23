@@ -1,16 +1,17 @@
 import React from 'react';
 import {Route} from 'react-router-dom';
 import {Redirect} from 'react-router';
+import store from '../reducers';
 
 // use this route for protected pages
 export default ({component: Component, appStyle: AppStyle, ...rest}) => (
   <Route
     {...rest}
     render={props =>
-      JSON.parse(localStorage.getItem('app_user')) ? (
-        <Component {...props} appStyle={AppStyle} />
-      ) : (
+      store.getState().auth.user === null ? (
         <Redirect to={{pathname: '/login', state: {from: props.location}}} />
+      ) : (
+        <Component {...props} appStyle={AppStyle} />
       )
     }
   />
