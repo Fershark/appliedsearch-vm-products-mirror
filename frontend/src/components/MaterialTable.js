@@ -38,7 +38,6 @@ const tableIcons = {
 };
 
 export default props => {
-  console.log(props);
   return (
     <MaterialTable
       icons={tableIcons}
