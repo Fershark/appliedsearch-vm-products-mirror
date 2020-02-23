@@ -1,6 +1,6 @@
 FROM node:12.14.1-stretch-slim
 
-ARG BACKEND_DOCUMENT_ROOT
+ARG BACKEND_DOCUMENT_ROOT=/app-backend
 
 RUN apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y && \
     apt-get install -y nano \
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y && \
 
 WORKDIR ${BACKEND_DOCUMENT_ROOT}
 
-COPY ./backend .
+COPY . .
 
 RUN npm install
 

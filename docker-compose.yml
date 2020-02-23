@@ -2,14 +2,14 @@ version: '3'
 services:
   appliedresearch-backend:
     build:
-      dockerfile: ./backend/Dockerfile
-      context: ./
+      dockerfile: ./Dockerfile
+      context: ./backend
       args:
         BACKEND_DOCUMENT_ROOT: ${BACKEND_DOCUMENT_ROOT}
         RUN_NPM_INSTALL: ${RUN_NPM_INSTALL}
         INITIALIZE_DB_DATA: ${INITIALIZE_DB_DATA}
     env_file:
-      - .env
+      - ./backend/.env
     image: appliedresearch-backend
     ports:
       - "5000:5000"
@@ -20,12 +20,12 @@ services:
       - ./backend:${BACKEND_DOCUMENT_ROOT}
   appliedresearch-frontend:
       build:
-        dockerfile: ./frontend/Dockerfile
-        context: ./
+        dockerfile: ./Dockerfile
+        context: ./frontend
         args:
           FRONTEND_DOCUMENT_ROOT: ${FRONTEND_DOCUMENT_ROOT}
       env_file:
-        - .env
+        - ./frontend/.env
       image: appliedresearch-frontend
       depends_on:
         - appliedresearch-backend
@@ -38,10 +38,16 @@ services:
     image: mysql:5.7
     ports:
       - "3306:3306"
-    env_file:
-      - .env
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
     volumes:
-      - ./docker-mysql-db:/var/lib/mysql
+      - vm-products-db-volume:/var/lib/mysql
+      - ./backend/database:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "appliedresearch-mysql"]
+      timeout: 20s
+      retries: 10
+
+volumes: 
+  vm-products-db-volume:
