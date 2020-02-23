@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import {Container} from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 import {Drawer, Title, MaterialTable, LoadingPage} from '../../components';
-import {API_GET_VMS} from '../../config/endpoints-conf';
+import {API_GET_VMS, API_DELETE_VM} from '../../config/endpoints-conf';
 import {getUserIdToken} from '../../actions/authenticate';
 
 export default function VMs({appStyle, match, history}) {
@@ -23,8 +24,9 @@ export default function VMs({appStyle, match, history}) {
       .then(([ok, res]) => {
         if (ok) {
           let parsedVMs = res.reduce((accumulator, currentValue) => {
-            const {name, image, status, networks, region, vcpus, memory, disk} = currentValue;
+            const {id, name, image, status, networks, region, vcpus, memory, disk} = currentValue;
             accumulator.push({
+              id,
               name,
               distribution: `${image.distribution} ${image.name}`,
               status,
@@ -41,6 +43,24 @@ export default function VMs({appStyle, match, history}) {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  const deleteVM = ({id}) => {
+    setLoading(true);
+    getUserIdToken()
+      .then(token =>
+        fetch(`${API_DELETE_VM}${id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: token,
+          },
+        }),
+      )
+      .then(res => Promise.all([res.ok, res.json()]))
+      .then(([ok, res]) => ok && window.location.reload(false))
+      .catch(error => {
+        setLoading(false);
+      });
+  };
 
   return (
     <div className={appStyle.root}>
@@ -62,6 +82,13 @@ export default function VMs({appStyle, match, history}) {
             ]}
             data={vms}
             addClicked={(event, rowData) => history.push(`${url}/add`)}
+            actions={[
+              {
+                icon: DeleteIcon,
+                tooltip: 'Delete',
+                onClick: (event, rowData) => deleteVM(rowData),
+              },
+            ]}
           />
         </Container>
       </main>

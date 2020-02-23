@@ -44,6 +44,7 @@ export default props => {
       {...props}
       {...props.addClicked !== undefined && {
         actions: [
+          ...props.actions,
           {
             icon: AddBox,
             tooltip: 'Add',
