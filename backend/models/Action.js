@@ -18,7 +18,7 @@ class Actions {
   static TYPE_CREATE = () => "create";
   static TYPE_INSTALL = () => "install";
   static TYPE_UNINSTALL = () => "uninstall";
-  static TYPES = () => [this.TYPE_CREATE, this.TYPE_INSTALL, this.TYPE_UNINSTALL];
+  static TYPES = () => [this.TYPE_CREATE(), this.TYPE_INSTALL(), this.TYPE_UNINSTALL()];
 
   static getById(id) {
     return db.execute( 'SELECT * FROM ACTIONS WHERE id = ?',
