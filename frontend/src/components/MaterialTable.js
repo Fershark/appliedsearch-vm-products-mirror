@@ -38,13 +38,13 @@ const tableIcons = {
 };
 
 export default props => {
-  console.log(props);
   return (
     <MaterialTable
       icons={tableIcons}
       {...props}
       {...props.addClicked !== undefined && {
         actions: [
+          ...props.actions,
           {
             icon: AddBox,
             tooltip: 'Add',
