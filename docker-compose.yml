@@ -2,7 +2,7 @@ version: '3'
 services:
   appliedresearch-backend:
     build:
-      dockerfile: ./backend/Dockerfile
+      dockerfile: ./backend/Dev.Dockerfile
       context: ./
       args:
         BACKEND_DOCUMENT_ROOT: ${BACKEND_DOCUMENT_ROOT}
@@ -20,7 +20,7 @@ services:
       - ./backend:${BACKEND_DOCUMENT_ROOT}
   appliedresearch-frontend:
     build:
-      dockerfile: ./frontend/Dockerfile
+      dockerfile: ./frontend/Dev.Dockerfile
       context: ./
       args:
         FRONTEND_DOCUMENT_ROOT: ${FRONTEND_DOCUMENT_ROOT}
