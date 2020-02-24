@@ -1,6 +1,6 @@
 FROM node:12.14.1-stretch-slim
 
-ARG FRONTEND_DOCUMENT_ROOT=/app-frontend
+ARG FRONTEND_DOCUMENT_ROOT
 
 RUN apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y && \
     apt-get install -y nano \
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y && \
 
 WORKDIR ${FRONTEND_DOCUMENT_ROOT}
 
-COPY . ${FRONTEND_DOCUMENT_ROOT}
+COPY ./frontend .
 
 RUN npm install
 
