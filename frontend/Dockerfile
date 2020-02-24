@@ -10,7 +10,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y && \
 
 WORKDIR ${FRONTEND_DOCUMENT_ROOT}
 
-COPY . .
+COPY . ${FRONTEND_DOCUMENT_ROOT}
 
 RUN npm install
 
