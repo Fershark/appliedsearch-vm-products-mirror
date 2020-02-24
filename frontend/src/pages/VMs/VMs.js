@@ -1,12 +1,70 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {Container} from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
 
-import {Drawer, Title, MaterialTable} from '../../components';
+import {Drawer, Title, MaterialTable, LoadingPage} from '../../components';
+import {API_GET_VMS, API_DELETE_VM} from '../../config/endpoints-conf';
+import {getUserIdToken} from '../../actions/authenticate';
 
 export default function VMs({appStyle, match, history}) {
   const {url} = match;
+  const [loading, setLoading] = useState(true);
+  const [vms, setVms] = useState([]);
+
+  useEffect(() => {
+    getUserIdToken()
+      .then(token =>
+        fetch(API_GET_VMS, {
+          headers: {
+            Authorization: token,
+          },
+        }),
+      )
+      .then(res => Promise.all([res.ok, res.json()]))
+      .then(([ok, res]) => {
+        if (ok) {
+          let parsedVMs = res.reduce((accumulator, currentValue) => {
+            const {id, name, image, status, networks, region, vcpus, memory, disk} = currentValue;
+            accumulator.push({
+              id,
+              name,
+              distribution: `${image.distribution} ${image.name}`,
+              status,
+              ipAddress: networks.v4[0].ip_address,
+              region: region.name.substring(0, region.name.length - 1),
+              cpus: vcpus,
+              memory: `${memory / 1024} GB`,
+              disk: `${disk} GB SSD`,
+            });
+            return accumulator;
+          }, []);
+          setVms(parsedVMs);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const deleteVM = ({id}) => {
+    setLoading(true);
+    getUserIdToken()
+      .then(token =>
+        fetch(`${API_DELETE_VM}${id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: token,
+          },
+        }),
+      )
+      .then(res => Promise.all([res.ok, res.json()]))
+      .then(([ok, res]) => ok && window.location.reload(false))
+      .catch(error => {
+        setLoading(false);
+      });
+  };
+
   return (
     <div className={appStyle.root}>
+      <LoadingPage open={loading} />
       <Drawer />
       <main className={appStyle.content}>
         <Container maxWidth="lg" className={appStyle.container}>
@@ -14,28 +72,23 @@ export default function VMs({appStyle, match, history}) {
             title={<Title>Virtual Machines</Title>}
             columns={[
               {title: 'Name', field: 'name'},
-              {title: 'Email', field: 'email'},
-              {title: 'Version', field: 'version'},
+              {title: 'Distribution', field: 'distribution'},
               {title: 'Status', field: 'status'},
-              {title: 'IP Address', field: 'ipAddress'},
+              {title: 'IP address', field: 'ipAddress'},
+              {title: 'Region', field: 'region'},
+              {title: 'CPUs', field: 'cpus'},
+              {title: 'Memory', field: 'memory'},
+              {title: 'Disk', field: 'disk'},
             ]}
-            data={[
-              {
-                name: 'CSIS 4495 - 001',
-                email: 'test@student.douglascollege.ca',
-                version: 'Ubuntu 18.04',
-                status: 'Processing',
-                ipAddress: '',
-              },
-              {
-                name: 'CSIS 4495 - 001',
-                email: 'test1@student.douglascollege.ca',
-                version: 'Ubuntu 18.04',
-                status: 'Running',
-                ipAddress: '1.1.1.1',
-              },
-            ]}
+            data={vms}
             addClicked={(event, rowData) => history.push(`${url}/add`)}
+            actions={[
+              {
+                icon: DeleteIcon,
+                tooltip: 'Delete',
+                onClick: (event, rowData) => deleteVM(rowData),
+              },
+            ]}
           />
         </Container>
       </main>
