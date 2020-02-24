@@ -1,7 +1,7 @@
 import theme from './theme';
 
 export default {
-  appName: "Virtual Machine Products",
+  appName: "MyVirtualAutomation",
   drawerWidth: 256,
   theme,
 };

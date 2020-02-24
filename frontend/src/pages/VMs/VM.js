@@ -263,7 +263,7 @@ export default function EditVM({appStyle, match, history}) {
                 <SubTitle>How many?</SubTitle>
               </Grid>
               <Grid item xs={6}>
-                <SubTitle>Emails</SubTitle>
+                <SubTitle>Virtual Machines Names</SubTitle>
               </Grid>
             </Grid>
             <Grid container spacing={2}>
@@ -294,7 +294,7 @@ export default function EditVM({appStyle, match, history}) {
                 {emails.map((email, index) => (
                   <TextField
                     key={index}
-                    placeholder={`Email ${index + 1}`}
+                    placeholder={`Name ${index + 1}`}
                     value={email.value}
                     className={classes.emailInput}
                     variant="outlined"

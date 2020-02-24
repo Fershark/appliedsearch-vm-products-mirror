@@ -262,7 +262,7 @@ exports.createVM = async (req, res, next) => {
       "ipV4": droplet.networks.v4[0].ip_address,
       "username": "root",
       "password": password
-    }, TEST_MAIL)
+    }, req.user.email)
 
     ///update action status
     // Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
