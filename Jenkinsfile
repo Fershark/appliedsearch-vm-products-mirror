@@ -23,26 +23,27 @@ pipeline {
 
         stage('Build'){
             steps {
-                GIT_COMMIT_HASH = sh "(git rev-parse HEAD)"
-                echo "Build Docker image ..."
-                echo "Build Docker image backend ..."
-                echo "${DOCKER_ID}/${DOCKER_VM_BACKEND_IMAGE}"
-                sh "docker build ./backend -t ${DOCKER_ID}/${DOCKER_VM_BACKEND_IMAGE}:${GIT_COMMIT_HASH}"
+                echo "${GIT_COMMIT_HASH}"
+                // GIT_COMMIT_HASH = sh "(git rev-parse HEAD)"
+                // echo "Build Docker image ..."
+                // echo "Build Docker image backend ..."
+                echo "${DOCKER_ID}/${DOCKER_VM_BACKEND_IMAGE}:${GIT_COMMIT_HASH}"
+                // sh "docker build ./backend -t ${DOCKER_ID}/${DOCKER_VM_BACKEND_IMAGE}:${GIT_COMMIT_HASH}"
 
-                echo "Build Docker image frontend ..."
-                echo "${DOCKER_ID}/${DOCKER_VM_FRONTEND_IMAGE}"
-                sh "docker build ./frontend -t ${DOCKER_ID}/${DOCKER_VM_FRONTEND_IMAGE}:${GIT_COMMIT_HASH}"
+                // echo "Build Docker image frontend ..."
+                // echo "${DOCKER_ID}/${DOCKER_VM_FRONTEND_IMAGE}"
+                // sh "docker build ./frontend -t ${DOCKER_ID}/${DOCKER_VM_FRONTEND_IMAGE}:${GIT_COMMIT_HASH}"
             }
         }
 
-        stage('Deploy'){
-            steps {
-                GIT_COMMIT_HASH = sh "(git rev-parse HEAD)"
-                echo "Push Docker images into Docker Hub ..."
-                sh "echo \"${env.DOCKER_PASSWORD}\" | docker login -u \"${env.DOCKER_ID}\" --password-stdin"
-                sh "docker push ${DOCKER_ID}/${DOCKER_VM_BACKEND_IMAGE}:${GIT_COMMIT_HASH}"
-                sh "docker push ${DOCKER_ID}/${DOCKER_VM_FRONTEND_IMAGE}:${GIT_COMMIT_HASH}"
-            }
-        }
+        // stage('Deploy'){
+        //     steps {
+        //         GIT_COMMIT_HASH = sh "(git rev-parse HEAD)"
+        //         echo "Push Docker images into Docker Hub ..."
+        //         sh "echo \"${env.DOCKER_PASSWORD}\" | docker login -u \"${env.DOCKER_ID}\" --password-stdin"
+        //         sh "docker push ${DOCKER_ID}/${DOCKER_VM_BACKEND_IMAGE}:${GIT_COMMIT_HASH}"
+        //         sh "docker push ${DOCKER_ID}/${DOCKER_VM_FRONTEND_IMAGE}:${GIT_COMMIT_HASH}"
+        //     }
+        // }
     }
 }
