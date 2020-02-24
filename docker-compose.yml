@@ -1,7 +1,7 @@
 version: '3'
 services:
   appliedresearch-backend:
-    image: quangle205/appliedreseach-vm-product-backend:0ea67b8db57934a8419c27bfd3c7f68761ee1993
+    image: quangle205/appliedreseach-vm-product-backend:GIT_COMMIT_HASH
     env_file:
       - ./backend/.env
     ports:
@@ -12,7 +12,7 @@ services:
       - ${BACKEND_DOCUMENT_ROOT}/node_modules
       - ./backend:${BACKEND_DOCUMENT_ROOT}
   appliedresearch-frontend:
-    image: quangle205/appliedreseach-vm-product-frontend:0ea67b8db57934a8419c27bfd3c7f68761ee1993
+    image: quangle205/appliedreseach-vm-product-frontend:GIT_COMMIT_HASH
     env_file:
       - ./frontend/.env
     depends_on:
