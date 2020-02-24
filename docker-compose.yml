@@ -19,21 +19,21 @@ services:
       - ${BACKEND_DOCUMENT_ROOT}/node_modules
       - ./backend:${BACKEND_DOCUMENT_ROOT}
   appliedresearch-frontend:
-      build:
-        dockerfile: ./frontend/Dockerfile
-        context: ./
-        args:
-          FRONTEND_DOCUMENT_ROOT: ${FRONTEND_DOCUMENT_ROOT}
-      env_file:
-        - .env
-      image: appliedresearch-frontend
-      depends_on:
-        - appliedresearch-backend
-      ports:
-        - "3000:3000"
-      volumes:
-        - ${FRONTEND_DOCUMENT_ROOT}/node_modules
-        - ./frontend:${FRONTEND_DOCUMENT_ROOT}
+    build:
+      dockerfile: ./frontend/Dockerfile
+      context: ./
+      args:
+        FRONTEND_DOCUMENT_ROOT: ${FRONTEND_DOCUMENT_ROOT}
+    env_file:
+      - .env
+    image: appliedresearch-frontend
+    depends_on:
+      - appliedresearch-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ${FRONTEND_DOCUMENT_ROOT}/node_modules
+      - ./frontend:${FRONTEND_DOCUMENT_ROOT}
   appliedresearch-mysql:
     image: mysql:5.7
     ports:
