@@ -17,7 +17,7 @@ pipeline {
                 echo "INITIALIZE ENVIRONMENTS ..."
                 sh "docker --version"
                 echo "RUNNING TEST CASES IF ANY ..."
-                echo "${GIT_COMMIT_HASH}"
+                echo "${GIT_REVISION}"
             }
         }
 
