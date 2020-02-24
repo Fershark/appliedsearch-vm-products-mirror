@@ -10,7 +10,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y && \
 
 WORKDIR ${BACKEND_DOCUMENT_ROOT}
 
-COPY . .
+COPY ./backend .
 
 RUN npm install
 

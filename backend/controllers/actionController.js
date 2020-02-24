@@ -11,6 +11,11 @@ exports._create = async (action) => {
 		throw new Error('vm_id and type are required');
 	}
 
+	//check types
+	if (Action.TYPES().includes(action.type) == false) {
+		throw new Error('action type is invalid!');
+	}
+
 	//check product info
 	if ((action.type == Action.TYPE_UNINSTALL() ||
 			action.type == Action.TYPE_INSTALL()) && !action.product) {
