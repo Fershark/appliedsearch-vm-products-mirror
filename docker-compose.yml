@@ -1,16 +1,9 @@
 version: '3'
 services:
   appliedresearch-backend:
-    build:
-      dockerfile: ./backend/Dev.Dockerfile
-      context: ./
-      args:
-        BACKEND_DOCUMENT_ROOT: ${BACKEND_DOCUMENT_ROOT}
-        RUN_NPM_INSTALL: ${RUN_NPM_INSTALL}
-        INITIALIZE_DB_DATA: ${INITIALIZE_DB_DATA}
+    image: quangle205/appliedreseach-vm-product-backend:GIT_COMMIT_HASH
     env_file:
-      - .env
-    image: appliedresearch-backend
+      - ./backend/.env
     ports:
       - "5000:5000"
     depends_on:
@@ -19,14 +12,9 @@ services:
       - ${BACKEND_DOCUMENT_ROOT}/node_modules
       - ./backend:${BACKEND_DOCUMENT_ROOT}
   appliedresearch-frontend:
-    build:
-      dockerfile: ./frontend/Dev.Dockerfile
-      context: ./
-      args:
-        FRONTEND_DOCUMENT_ROOT: ${FRONTEND_DOCUMENT_ROOT}
+    image: quangle205/appliedreseach-vm-product-frontend:GIT_COMMIT_HASH
     env_file:
-      - .env
-    image: appliedresearch-frontend
+      - ./frontend/.env
     depends_on:
       - appliedresearch-backend
     ports:
@@ -44,4 +32,8 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
     volumes:
-      - ./docker-mysql-db:/var/lib/mysql
+      - appliedresearch-vm-db-volume:/var/lib/mysql
+      - ./backend/database:/docker-entrypoint-initdb.d
+
+volumes: 
+  appliedresearch-vm-db-volume:
