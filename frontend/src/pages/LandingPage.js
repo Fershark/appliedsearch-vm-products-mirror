@@ -86,7 +86,7 @@ export default function LandingPage({history}) {
       <main className={classes.mainHeaderContent} style={{backgroundImage: `url(${backgroundLandingImage})`}}>
         <Grid container spacing={1} className={classes.mainContent}>
           <Grid item xs={12} md={user === null ? 6 : 12}>
-            <h2 className={classes.welcomeHeader}>Welcome to {config.appName}</h2>
+            <h2 className={classes.welcomeHeader}>{config.appName}</h2>
             <p className={classes.welcomeParagraph}>
               We make it simple to launch in the cloud and scale up as you grow – with an intuitive control panel,
               predictable pricing, team accounts, and more.
