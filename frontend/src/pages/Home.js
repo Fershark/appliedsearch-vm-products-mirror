@@ -1,7 +1,6 @@
 import React from 'react';
 import {withStyles} from '@material-ui/core/styles';
 import {Container} from '@material-ui/core';
-import homeStyles from '../assets/jss/views/home';
 import Drawer from '../components/Drawer';
 import {getUserIdToken} from '../actions/authenticate';
 
