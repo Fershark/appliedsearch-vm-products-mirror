@@ -1,6 +1,6 @@
 import React from 'react';
-import {withStyles} from '@material-ui/core/styles';
 import {Container} from '@material-ui/core';
+
 import Drawer from '../components/Drawer';
 import {getUserIdToken} from '../actions/authenticate';
 
@@ -21,4 +21,4 @@ class Home extends React.Component {
   }
 }
 
-export default withStyles(homeStyles)(Home);
+export default Home;
