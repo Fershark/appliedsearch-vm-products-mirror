@@ -1,7 +1,7 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
 
-import {AUTH_PROCESSING, AUTH_LOGIN_USER, AUTH_LOGOUT, API_CREATE_USER} from '../config/endpoints-conf';
+import {AUTH_PROCESSING, AUTH_LOGIN_USER, AUTH_LOGOUT} from '../config/endpoints-conf';
 
 // firebase config
 const fireBaseConfig = {
@@ -21,7 +21,7 @@ const processing = isProcessing => ({
   payload: isProcessing,
 });
 
-const loginUser = (email, password, dispatch) =>
+export const logInUser = (email, password, dispatch) =>
   fireBaseApp
     .auth()
     .signInWithEmailAndPassword(email, password)
@@ -36,7 +36,7 @@ const loginUser = (email, password, dispatch) =>
 
       dispatch({
         type: AUTH_LOGIN_USER,
-        payload: {message: '', success: true, user},
+        payload: {user},
       });
     });
 
@@ -45,7 +45,7 @@ export const doSignInWithEmailAndPassword = (email, password) => {
   return dispatch => {
     dispatch(processing(true));
 
-    loginUser(email, password, dispatch).catch(err => {
+    logInUser(email, password, dispatch).catch(err => {
       console.log('ERROR AUTHENTICATED');
       const {message} = err;
       dispatch({
@@ -76,39 +76,6 @@ export const getCurrentUserAuth = () => {
 };
 
 export const getUserIdToken = () => getCurrentUserAuth().then(user => user.getIdToken());
-
-export const accountSignUp = (fullName, email, password) => {
-  return dispatch => {
-    dispatch(processing(true));
-    fetch(API_CREATE_USER, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email,
-        password: password,
-        phone: ' ',
-        name: fullName,
-        address: ' ',
-      }),
-    })
-      .then(res => Promise.all([res.ok, res.json()]))
-      .then(([ok, res]) => {
-        if (!ok) {
-          console.log('Error during the sign up', ok, res);
-          const {message} = res;
-          dispatch({
-            type: AUTH_LOGIN_USER,
-            payload: {message, success: false, user: null},
-          });
-        } else {
-          console.log('SignUp Success');
-          loginUser(email, password, dispatch);
-        }
-      });
-  };
-};
 
 /*
 export const getUserDetails = (getUserIdToken) => (id) =>  {

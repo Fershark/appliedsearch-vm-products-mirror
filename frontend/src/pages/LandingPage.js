@@ -1,40 +1,41 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {makeStyles} from '@material-ui/core/styles';
-import {Link, Grid, TextField, Button, LinearProgress} from '@material-ui/core';
+import {Link, Grid, LinearProgress} from '@material-ui/core';
 import Box from '@material-ui/core/Box';
 import Paper from '@material-ui/core/Paper';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import {ToastContainer, toast} from 'react-toastify';
 
 import config from '../config';
 import landingPageStyles from '../assets/jss/views/landingPage';
-import {accountSignUp} from '../actions/authenticate';
 import backgroundLandingImage from '../assets/images/bg-landing-page.jpg';
+import {SignUpForm, SignInForm} from '../components';
 
 const useStyles = makeStyles(landingPageStyles);
 
 export default function LandingPage({history}) {
-  const dispatch = useDispatch();
-  const {user, auth_processing, auth_message} = useSelector(state => state.auth);
+  const {user} = useSelector(state => state.auth);
   const classes = useStyles();
-
-  const handleForm = event => {
-    event.preventDefault();
-    const {fullName, email, password} = event.target;
-    dispatch(accountSignUp(fullName.value, email.value, password.value));
-  };
+  const [loading, setLoading] = useState(false);
+  const [fetchMessage, setFetchMessage] = useState('');
+  const [isSignUp, setIsSignUp] = useState(true);
+  const [loginSuccessful, setLoginSuccessful] = useState(false);
 
   useEffect(() => {
-    if (auth_message.message !== '') {
-      toast.error(auth_message.message);
+    if (fetchMessage !== '') {
+      toast.error(fetchMessage);
     }
-  }, [auth_message.message]);
+
+    return () => {
+      setFetchMessage('');
+    };
+  }, [fetchMessage]);
 
   useEffect(() => {
-    if (auth_message.success === true) {
+    if (loginSuccessful === true) {
       history.push('/home');
     }
-  }, [auth_message.success, history]);
+  }, [loginSuccessful, history]);
 
   return (
     <React.Fragment>
@@ -45,14 +46,22 @@ export default function LandingPage({history}) {
         p={1}
         m={1}
         bgcolor="background.paper">
-        {user === null ? (
-          ''
-        ) : (
+        {user !== null && (
           <Box p={1}>
             <Link href="/logout">Sign out</Link>
           </Box>
         )}
-        <Box p={1}>{user === null ? <Link href="/login">Sign in</Link> : <Link href="/home">Home</Link>}</Box>
+        <Box p={1}>
+          {user === null ? (
+            isSignUp ? (
+              <Link onClick={() => setIsSignUp(!isSignUp)}>Sign in</Link>
+            ) : (
+              <Link onClick={() => setIsSignUp(!isSignUp)}>Sign up</Link>
+            )
+          ) : (
+            <Link href="/home">Home</Link>
+          )}
+        </Box>
         <Box p={1}>
           <Link>Get support</Link>
         </Box>
@@ -80,7 +89,7 @@ export default function LandingPage({history}) {
         </ul>
       </Box>
 
-      {auth_processing && <LinearProgress color="secondary" />}
+      {loading && <LinearProgress color="secondary" />}
       <ToastContainer />
 
       <main className={classes.mainHeaderContent} style={{backgroundImage: `url(${backgroundLandingImage})`}}>
@@ -92,62 +101,26 @@ export default function LandingPage({history}) {
               predictable pricing, team accounts, and more.
             </p>
           </Grid>
-          {user === null ? (
+          {user === null && (
             <Grid item xs={12} md={6}>
-              <Paper className={classes.paper}>
-                <h1>Sign up your account</h1>
-                <form className={classes.formSignUp} autoComplete="off" onSubmit={handleForm}>
-                  <Grid item xs={12} sm={12}>
-                    <TextField
-                      margin="normal"
-                      autoComplete="fname"
-                      name="FullName"
-                      variant="outlined"
-                      required
-                      fullWidth
-                      id="fullName"
-                      label="Full name"
-                      autoFocus
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={12}>
-                    <TextField
-                      autoComplete="email"
-                      name="Email"
-                      variant="outlined"
-                      required
-                      fullWidth
-                      margin="normal"
-                      id="email"
-                      label="Email"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={12}>
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      fullWidth
-                      name="password"
-                      label="Password"
-                      type="password"
-                      id="password"
-                    />
-                  </Grid>
-                  <Button
-                    type="submit"
-                    fullWidth
-                    margin="normal"
-                    variant="contained"
-                    color="primary"
-                    className={classes.btnSignUp}>
-                    Sign Up
-                  </Button>
-                </form>
+              <Paper style={{padding: '1px 20px 20px'}}>
+                {isSignUp ? (
+                  <SignUpForm
+                    setIsSignUp={setIsSignUp}
+                    setLoading={setLoading}
+                    setFetchMessage={setFetchMessage}
+                    setLoginSuccessful={setLoginSuccessful}
+                  />
+                ) : (
+                  <SignInForm
+                    setIsSignUp={setIsSignUp}
+                    setLoading={setLoading}
+                    setFetchMessage={setFetchMessage}
+                    setLoginSuccessful={setLoginSuccessful}
+                  />
+                )}
               </Paper>
             </Grid>
-          ) : (
-            ''
           )}
         </Grid>
       </main>
