@@ -93,7 +93,7 @@ export default function LandingPage({history}) {
       <ToastContainer />
 
       <main className={classes.mainHeaderContent} style={{backgroundImage: `url(${backgroundLandingImage})`}}>
-        <Grid container spacing={1} className={classes.mainContent}>
+        <Grid container spacing={3} className={classes.mainContent}>
           <Grid item xs={12} md={user === null ? 6 : 12}>
             <h2 className={classes.welcomeHeader}>{config.appName}</h2>
             <p className={classes.welcomeParagraph}>
@@ -103,7 +103,7 @@ export default function LandingPage({history}) {
           </Grid>
           {user === null && (
             <Grid item xs={12} md={6}>
-              <Paper style={{padding: '1px 20px 20px'}}>
+              <Paper style={{padding: '1px 20px 20px', maxWidth: '480px', margin: '0 auto'}}>
                 {isSignUp ? (
                   <SignUpForm
                     setIsSignUp={setIsSignUp}
