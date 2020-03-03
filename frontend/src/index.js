@@ -4,12 +4,12 @@ import * as serviceWorker from './serviceWorker';
 import {Provider} from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import reducers from './reducers';
+import store from './store';
 import App from './App';
 import config from './config';
 
 ReactDOM.render(
-  <Provider store={reducers}>
+  <Provider store={store}>
     <BrowserRouter>
       <MuiThemeProvider theme={config.theme}>
         <App />

@@ -1,7 +1,7 @@
 import React from 'react';
 import {Route} from 'react-router-dom';
 import {Redirect} from 'react-router';
-import store from '../reducers';
+import store from '../store';
 
 // use this route for protected pages
 export default ({component: Component, appStyle: AppStyle, ...rest}) => (
