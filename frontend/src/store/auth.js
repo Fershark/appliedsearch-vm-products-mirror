@@ -1,21 +1,19 @@
-import {AUTH_LOGIN_USER, AUTH_LOGOUT} from '../config/endpoints-conf';
+import {createAction} from '@reduxjs/toolkit';
+
+// Actions
+export const saveUser = createAction('AUTH_SAVE_USER');
 
 const initialState = {
   user: JSON.parse(localStorage.getItem('app_user')),
 };
+
 const authReducer = (state = initialState, action) => {
   switch (action.type) {
-    case AUTH_LOGIN_USER:
-      localStorage.setItem('app_user', JSON.stringify(action.payload.user));
+    case saveUser.type:
+      localStorage.setItem('app_user', JSON.stringify(action.payload));
       return {
         ...state,
-        user: action.payload.user,
-      };
-    case AUTH_LOGOUT:
-      localStorage.setItem('app_user', null);
-      return {
-        ...state,
-        user: null,
+        user: action.payload,
       };
     default:
       return state;

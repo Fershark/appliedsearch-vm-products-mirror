@@ -1,7 +1,7 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
 
-import {AUTH_LOGIN_USER} from '../config/endpoints-conf';
+import {saveUser} from '../store/auth';
 
 // firebase config
 const fireBaseConfig = {
@@ -29,10 +29,7 @@ export const logInUser = (email, password, dispatch) =>
         photoURL: res.user.photoURL,
       };
 
-      dispatch({
-        type: AUTH_LOGIN_USER,
-        payload: {user},
-      });
+      dispatch(saveUser(user));
     });
 
 // get current Auth User

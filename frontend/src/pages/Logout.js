@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {firebaseApp} from '../services';
-import {AUTH_LOGOUT} from '../config/endpoints-conf';
+import {saveUser} from '../store/auth';
 
 export default function Logout({history}) {
   const dispatch = useDispatch();
@@ -10,7 +10,7 @@ export default function Logout({history}) {
 
   useEffect(() => {
     firebaseApp.auth().signOut();
-    dispatch({type: AUTH_LOGOUT, payload: null});
+    dispatch(saveUser(null));
   }, [dispatch]);
 
   useEffect(() => {
