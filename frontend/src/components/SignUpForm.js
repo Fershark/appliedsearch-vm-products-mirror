@@ -3,7 +3,7 @@ import {Grid, TextField, Button, Link} from '@material-ui/core';
 import {useDispatch} from 'react-redux';
 import {useTheme} from '@material-ui/core/styles';
 
-import {logInUser} from '../actions/authenticate';
+import {logInUser} from '../services/firebase';
 import {API_CREATE_USER} from '../config/endpoints-conf';
 
 export default function SignupForm({setIsSignUp, setLoading, setFetchMessage, setLoginSuccessful}) {

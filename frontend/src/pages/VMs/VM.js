@@ -27,7 +27,7 @@ import {
   API_GET_VMS_REGIONS,
   API_CREATE_VM,
 } from '../../config/endpoints-conf';
-import {getUserIdToken} from '../../actions/authenticate';
+import {getUserIdToken} from '../../services/firebase';
 
 const useStyles = makeStyles(theme => ({
   cardRoot: {

@@ -3,7 +3,7 @@ import {Grid, TextField, Button, Link} from '@material-ui/core';
 import {useTheme} from '@material-ui/core/styles';
 import {useDispatch} from 'react-redux';
 
-import {logInUser} from '../actions/authenticate';
+import {logInUser} from '../services/firebase';
 
 export default function Login({setIsSignUp, setLoading, setFetchMessage, setLoginSuccessful}) {
   const theme = useTheme();

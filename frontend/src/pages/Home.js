@@ -2,7 +2,7 @@ import React from 'react';
 import {Container} from '@material-ui/core';
 
 import Drawer from '../components/Drawer';
-import {getUserIdToken} from '../actions/authenticate';
+import {getUserIdToken} from '../services/firebase';
 
 class Home extends React.Component {
   render() {

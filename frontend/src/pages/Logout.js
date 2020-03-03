@@ -1,14 +1,16 @@
 import {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {doSignOut} from '../actions/authenticate';
+import {firebaseApp} from '../services';
+import {AUTH_LOGOUT} from '../config/endpoints-conf';
 
 export default function Logout({history}) {
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.auth);
 
   useEffect(() => {
-    doSignOut(dispatch);
+    firebaseApp.auth().signOut();
+    dispatch({type: AUTH_LOGOUT, payload: null});
   }, [dispatch]);
 
   useEffect(() => {

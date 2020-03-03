@@ -4,7 +4,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 
 import {Drawer, Title, MaterialTable, LoadingPage} from '../../components';
 import {API_GET_VMS, API_DELETE_VM} from '../../config/endpoints-conf';
-import {getUserIdToken} from '../../actions/authenticate';
+import {getUserIdToken} from '../../services/firebase';
 
 export default function VMs({appStyle, match, history}) {
   const {url} = match;

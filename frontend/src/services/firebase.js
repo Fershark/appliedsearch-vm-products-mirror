@@ -1,7 +1,7 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
 
-import {AUTH_PROCESSING, AUTH_LOGIN_USER, AUTH_LOGOUT} from '../config/endpoints-conf';
+import {AUTH_LOGIN_USER} from '../config/endpoints-conf';
 
 // firebase config
 const fireBaseConfig = {
@@ -15,11 +15,6 @@ const fireBaseConfig = {
 };
 
 const fireBaseApp = firebase.initializeApp(fireBaseConfig);
-
-const processing = isProcessing => ({
-  type: AUTH_PROCESSING,
-  payload: isProcessing,
-});
 
 export const logInUser = (email, password, dispatch) =>
   fireBaseApp
@@ -40,28 +35,6 @@ export const logInUser = (email, password, dispatch) =>
       });
     });
 
-// firebase sign in account
-export const doSignInWithEmailAndPassword = (email, password) => {
-  return dispatch => {
-    dispatch(processing(true));
-
-    logInUser(email, password, dispatch).catch(err => {
-      console.log('ERROR AUTHENTICATED');
-      const {message} = err;
-      dispatch({
-        type: AUTH_LOGIN_USER,
-        payload: {message, success: false, user: null},
-      });
-    });
-  };
-};
-
-// firebase signout
-export const doSignOut = dispatch => {
-  fireBaseApp.auth().signOut();
-  dispatch({type: AUTH_LOGOUT, payload: null});
-};
-
 // get current Auth User
 export const getCurrentUserAuth = () => {
   return new Promise((resolve, reject) => {
@@ -76,25 +49,5 @@ export const getCurrentUserAuth = () => {
 };
 
 export const getUserIdToken = () => getCurrentUserAuth().then(user => user.getIdToken());
-
-/*
-export const getUserDetails = (getUserIdToken) => (id) =>  {
-    
-    return getUserIdToken()
-        .then(data => {
-            const idToken = data.idToken;
-            return axios.get(API_GET_USER + id, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': idToken
-                }
-            }).then(res => {
-                return res.data
-            }).catch(err => {
-                console.log("ERR: " + err);
-            })
-        })
-}
-*/
 
 export default fireBaseApp;
