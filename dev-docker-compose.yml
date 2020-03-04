@@ -44,4 +44,8 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
     volumes:
-      - ./docker-mysql-db:/var/lib/mysql
+      - vms-db-volume:/var/lib/mysql
+      - ./backend/database:/docker-entrypoint-initdb.d
+
+volumes: 
+  vms-db-volume:

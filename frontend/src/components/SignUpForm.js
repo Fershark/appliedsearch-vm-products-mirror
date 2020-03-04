@@ -37,7 +37,7 @@ export default function SignupForm({setIsSignUp, setLoading, setFetchMessage, se
           setFetchMessage(message);
         } else {
           console.log('SignUp Success');
-          logInUser(email, password, dispatch).then(() => setLoginSuccessful(true));
+          logInUser(email.value, password.value, dispatch).then(() => setLoginSuccessful(true));
         }
       });
   };

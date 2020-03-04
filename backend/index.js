@@ -4,9 +4,11 @@ const { NODE_HOST, NODE_PORT } = require('./config');
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
+const cors = require('cors');
 
 // App
 const app = express();
+app.use(cors());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 const vmRoutes = require('./routes/vmRoute');
