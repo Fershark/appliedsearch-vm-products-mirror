@@ -275,8 +275,27 @@ exports.createVM = async (req, res, next) => {
     await VM.updateIpV4(droplet.networks.v4[0].ip_address, vm_id);
 
     //TODO: CALL /update_do_vms from QUANG
-    let VMSsummary = await VM.getVMSsummary();
-    console.log("VMSsummary: ", VMSsummary[0][0].result);
+    // let VMSsummary = await VM.getVMSsummary();
+    // console.log("VMSsummary: ", VMSsummary[0][0].result);
+
+    // let newVmInfo = ;
+
+    RequestHTTPS.post(
+      {
+        hostname: '127.0.0.1',
+        port: 80,
+        path: '/api/vms',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }, 
+      {
+        "vm_ip_address": droplet.networks.v4[0].ip_address,
+        "vm_name": vm_id,
+        "vm_owner": req.user.email,
+        "vm_group": "DO_VM"
+      });
 
     res.status(201).json(droplet);
 
