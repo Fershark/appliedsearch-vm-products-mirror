@@ -1,4 +1,6 @@
 const RequestHTTPS = require('../utils/requestHTTPS');
+const RequestHTTP = require('../utils/requestHTTP');
+
 const {
   DIGITAL_OCEAN_API_TOKEN,
   GMAIL_PASSWD,
@@ -280,7 +282,7 @@ exports.createVM = async (req, res, next) => {
 
     // let newVmInfo = ;
 
-    RequestHTTPS.post(
+    RequestHTTP.post(
       {
         hostname: '127.0.0.1',
         port: 80,
