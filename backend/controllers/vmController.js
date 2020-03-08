@@ -281,12 +281,12 @@ exports.createVM = async (req, res, next) => {
     // console.log("VMSsummary: ", VMSsummary[0][0].result);
 
     // let newVmInfo = ;
-
+    // NOTE: PLESASE COMMENT THIS HTTP IN DEVELOPMENT SERVER
     RequestHTTP.post(
       {
-        hostname: '127.0.0.1',
+        hostname: 'appliedresearch-nginx-reverse',
         port: 80,
-        path: '/api/vms',
+        path: '/api/vms/',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
