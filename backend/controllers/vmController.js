@@ -397,8 +397,18 @@ exports.deleteVM = async (req, res, next) => {
     let deleteResult = await VM.deleteVM(vm_id);
 
     //TODO: CALL /update_do_vms from QUANG
-    let VMSsummary = await VM.getVMSsummary();
-    console.log("VMSsummary: ", VMSsummary[0][0].result);
+    // let VMSsummary = await VM.getVMSsummary();
+    // console.log("VMSsummary: ", VMSsummary[0][0].result);
+    // NOTE: PLESASE COMMENT THIS HTTP IN DEVELOPMENT SERVER
+    RequestHTTP.delete({
+      hostname: 'appliedresearch-nginx-reverse',
+      port: 80,
+      path: '/api/vms/' + vm_id,
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
     if(deleteResult[0].affectedRows == 1)
       res.status(200).json(data);
