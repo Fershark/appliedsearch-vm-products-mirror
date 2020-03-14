@@ -1,4 +1,6 @@
 const RequestHTTPS = require('../utils/requestHTTPS');
+const RequestHTTP = require('../utils/requestHTTP');
+
 const {
   DIGITAL_OCEAN_API_TOKEN,
   GMAIL_PASSWD,
@@ -275,8 +277,27 @@ exports.createVM = async (req, res, next) => {
     await VM.updateIpV4(droplet.networks.v4[0].ip_address, vm_id);
 
     //TODO: CALL /update_do_vms from QUANG
-    let VMSsummary = await VM.getVMSsummary();
-    console.log("VMSsummary: ", VMSsummary[0][0].result);
+    // let VMSsummary = await VM.getVMSsummary();
+    // console.log("VMSsummary: ", VMSsummary[0][0].result);
+
+    // let newVmInfo = ;
+    // NOTE: PLESASE COMMENT THIS HTTP IN DEVELOPMENT SERVER
+    RequestHTTP.post(
+      {
+        hostname: 'appliedresearch-nginx-reverse',
+        port: 80,
+        path: '/api/vms/',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }, 
+      {
+        "vm_ip_address": droplet.networks.v4[0].ip_address,
+        "vm_name": vm_id,
+        "vm_owner": req.user.email,
+        "vm_group": "DO_VM"
+      });
 
     res.status(201).json(droplet);
 
@@ -376,8 +397,18 @@ exports.deleteVM = async (req, res, next) => {
     let deleteResult = await VM.deleteVM(vm_id);
 
     //TODO: CALL /update_do_vms from QUANG
-    let VMSsummary = await VM.getVMSsummary();
-    console.log("VMSsummary: ", VMSsummary[0][0].result);
+    // let VMSsummary = await VM.getVMSsummary();
+    // console.log("VMSsummary: ", VMSsummary[0][0].result);
+    // NOTE: PLESASE COMMENT THIS HTTP IN DEVELOPMENT SERVER
+    RequestHTTP.delete({
+      hostname: 'appliedresearch-nginx-reverse',
+      port: 80,
+      path: '/api/vms/' + vm_id,
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
     if(deleteResult[0].affectedRows == 1)
       res.status(200).json(data);
