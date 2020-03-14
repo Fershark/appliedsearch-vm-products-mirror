@@ -26,6 +26,7 @@ import {
   API_GET_VMS_SIZES,
   API_GET_VMS_REGIONS,
   API_CREATE_VM,
+  API_GET_PRODUCTS,
 } from '../../config/endpoints-conf';
 import {getUserIdToken} from '../../services/firebase';
 
@@ -68,6 +69,9 @@ const useStyles = makeStyles(theme => ({
   emailInput: {
     marginBottom: 10,
   },
+  productCard: {
+    width: 200,
+  }
 }));
 
 export default function EditVM({appStyle, match, history}) {
@@ -82,50 +86,64 @@ export default function EditVM({appStyle, match, history}) {
   const [regions, setRegions] = useState([]);
   const [region, setRegion] = useState('');
   const [emails, setEmails] = useState([{value: '', error: ''}]);
+  const [products, setProducts] = useState({});
+  const [productsSelected, setProductsSelected] = useState({});
 
   useEffect(() => {
-    Promise.all([fetch(API_GET_VMS_DISTRIBUTIONS), fetch(API_GET_VMS_SIZES), fetch(API_GET_VMS_REGIONS)])
-      .then(([resDistributions, resSizes, resRegions]) =>
-        Promise.all([
-          resDistributions.ok,
-          resDistributions.json(),
-          resSizes.ok,
-          resSizes.json(),
-          resRegions.ok,
-          resRegions.json(),
-        ]),
-      )
-      .then(([okDistributions, resDistributions, okSizes, resSizes, okRegions, resRegions]) => {
-        if (okDistributions) {
-          const {name, data} = resDistributions[0];
-          const {slug} = data[0];
-          setDistribution({name, slug});
-          setDistributions(resDistributions);
+    const getData = async () => {
+      const [resDistributions, resSizes, resRegions, resProducts] = await Promise.all([
+        fetch(API_GET_VMS_DISTRIBUTIONS),
+        fetch(API_GET_VMS_SIZES),
+        fetch(API_GET_VMS_REGIONS),
+        fetch(API_GET_PRODUCTS),
+      ]);
+      const [resDistributionsJson, resSizesJson, resRegionsJson, resProductsJson] = await Promise.all([
+        resDistributions.json(),
+        resSizes.json(),
+        resRegions.json(),
+        resProducts.json()
+      ]);
+
+      if (resDistributions.ok) {
+        const {name, data} = resDistributionsJson[0];
+        const {slug} = data[0];
+        setDistribution({name, slug});
+        setDistributions(resDistributionsJson);
+      }
+      if (resSizes.ok) {
+        let sizesFiltered = resSizesJson.filter(({regions}) => regions.length === 12);
+        const {slug} = sizesFiltered[0];
+        setSize(slug);
+        setSizes(sizesFiltered);
+      }
+      if (resRegions.ok) {
+        let regionsFiltered = resRegionsJson
+          .filter(({slug}) => slug.includes('sfo') || slug.includes('nyc') || slug.includes('tor'))
+          .reduce((accumulator, currentValue) => {
+            const {slug} = currentValue;
+            let key = slug.substring(0, slug.length - 1);
+            if (accumulator[key] === undefined) {
+              accumulator[key] = currentValue;
+            }
+            return accumulator;
+          }, {});
+        regionsFiltered = Object.values(regionsFiltered);
+        let {slug} = regionsFiltered[0];
+        setRegion(slug);
+        setRegions(regionsFiltered);
+      }
+      if (resProducts.ok) {
+        let productsSelected = {};
+        for (let products in resProductsJson) {
+          productsSelected[products] = "";
         }
-        if (okSizes) {
-          let sizesFiltered = resSizes.filter(({regions}) => regions.length === 12);
-          const {slug} = sizesFiltered[0];
-          setSize(slug);
-          setSizes(sizesFiltered);
-        }
-        if (okRegions) {
-          let regionsFiltered = resRegions
-            .filter(({slug}) => slug.includes('sfo') || slug.includes('nyc') || slug.includes('tor'))
-            .reduce((accumulator, currentValue) => {
-              const {slug} = currentValue;
-              let key = slug.substring(0, slug.length - 1);
-              if (accumulator[key] === undefined) {
-                accumulator[key] = currentValue;
-              }
-              return accumulator;
-            }, {});
-          regionsFiltered = Object.values(regionsFiltered);
-          let {slug} = regionsFiltered[0];
-          setRegion(slug);
-          setRegions(regionsFiltered);
-        }
-        setLoading(false);
-      });
+        setProductsSelected(productsSelected);
+        setProducts(resProductsJson);
+      }
+      setLoading(false);
+    };
+
+    getData();
   }, []);
 
   let submitVm = () => {
@@ -134,7 +152,6 @@ export default function EditVM({appStyle, match, history}) {
     let filteredEmails = [];
     for (let i = 0; i < emails.length; i++) {
       filteredEmails.push(newEmails[i].value);
-
       if (newEmails[i].value === '') {
         valid = false;
         newEmails[i] = {...newEmails[i], error: ' '};
@@ -176,7 +193,7 @@ export default function EditVM({appStyle, match, history}) {
     setEmails(newEmails);
   };
 
-  console.log({distribution, size, region, emails});
+  console.log({distribution, size, region, emails, products, productsSelected});
 
   return (
     <div className={appStyle.root}>
@@ -309,6 +326,38 @@ export default function EditVM({appStyle, match, history}) {
                 ))}
               </Grid>
             </Grid>
+            <SubTitle>Do you want to add some products to the VMs?</SubTitle>
+            <div className={classes.cardRoot}>
+              {Object.keys(products).map(productName => (
+                <Card
+                  key={productName}
+                  className={clsx(
+                    classes.card,
+                    classes.productCard,
+                  )}>
+                  <CardHeader
+                    title={productName}
+                    className={classes.cardHeader}
+                  />
+                  <CardActions className={classes.justifyCenter}>
+                    <Select
+                      value={productsSelected[productName]}
+                      displayEmpty
+                    onChange={event => setProductsSelected({...productsSelected, [productName]: event.target.value})}>
+                      <MenuItem value="">
+                        Not added
+                      </MenuItem>
+                      {products[productName].map(({id, version}) => (
+                        <MenuItem value={id} key={id}>
+                          {version}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </CardActions>
+                </Card>
+              ))}
+            </div>
+
             <Button variant="contained" color="primary" style={{marginTop: 25}} onClick={submitVm}>
               Create VM
             </Button>
