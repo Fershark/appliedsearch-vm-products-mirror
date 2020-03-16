@@ -2,10 +2,12 @@ import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {TextInput, Button, HelperText} from 'react-native-paper';
+import {useDispatch} from 'react-redux';
 
 import {logInUser} from '../services/Firebase';
 
 export default function SignIn() {
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,10 +34,10 @@ export default function SignIn() {
     if (valid) {
       setLoading(true);
 
-      logInUser(email, password, null)
+      logInUser(email, password, dispatch)
         .then(() => {
-          console.log(true);
           setLoading(false);
+          setLoginSuccessful(true);
         })
         .catch(err => {
           const {message} = err;

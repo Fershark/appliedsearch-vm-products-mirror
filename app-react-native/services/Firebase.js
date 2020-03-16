@@ -10,7 +10,7 @@ import {
   REACT_APP_FIREBASE_MESSAGINGSENDERID,
   REACT_APP_FIREBASE_APPID,
 } from 'react-native-dotenv';
-//import {saveUser} from '../store/auth';
+import {saveUser} from '../store/auth';
 
 // firebase config
 const fireBaseConfig = {
@@ -38,7 +38,7 @@ export const logInUser = (email, password, dispatch) =>
         photoURL: res.user.photoURL,
       };
 
-      //dispatch(saveUser(user));
+      dispatch(saveUser(user));
     });
 
 // get current Auth User
