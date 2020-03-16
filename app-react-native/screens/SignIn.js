@@ -3,6 +3,8 @@ import {StyleSheet, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {TextInput, Button, HelperText} from 'react-native-paper';
 
+import {logInUser} from '../services/Firebase';
+
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +31,17 @@ export default function SignIn() {
 
     if (valid) {
       setLoading(true);
-      
+
+      logInUser(email, password, null)
+        .then(() => {
+          console.log(true);
+          setLoading(false);
+        })
+        .catch(err => {
+          const {message} = err;
+          setLoading(false);
+          setEmailError(message);
+        });
     }
   };
 
