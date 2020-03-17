@@ -33,17 +33,11 @@ export default function SignIn() {
 
     if (valid) {
       setLoading(true);
-
-      logInUser(email, password, dispatch)
-        .then(() => {
-          setLoading(false);
-          setLoginSuccessful(true);
-        })
-        .catch(err => {
-          const {message} = err;
-          setLoading(false);
-          setEmailError(message);
-        });
+      logInUser(email, password, dispatch).catch(err => {
+        const {message} = err;
+        setLoading(false);
+        setEmailError(message);
+      });
     }
   };
 
