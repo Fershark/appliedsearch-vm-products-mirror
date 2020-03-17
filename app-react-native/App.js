@@ -10,20 +10,22 @@ import {useSelector} from 'react-redux';
 
 import configureStore from './store';
 import SignIn from './screens/SignIn';
-import Home from './screens/Home';
+import DrawerNavigator from './navigation/DrawerNavigator';
 
 const Stack = createStackNavigator();
 
 function Navigation() {
   const {user} = useSelector(state => state.auth);
   return (
-    <Stack.Navigator>
+    <>
       {user == null ? (
-        <Stack.Screen name="SignIn" component={SignIn} options={{title: 'Sign In'}} />
+        <Stack.Navigator>
+          <Stack.Screen name="SignIn" component={SignIn} options={{title: 'Sign In'}} />
+        </Stack.Navigator>
       ) : (
-        <Stack.Screen name="Home" component={Home} options={{title: 'Home'}} />
+        <DrawerNavigator />
       )}
-    </Stack.Navigator>
+    </>
   );
 }
 
