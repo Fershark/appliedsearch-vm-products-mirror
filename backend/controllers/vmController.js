@@ -166,6 +166,8 @@ exports.getVM = async (req, res, next) => {
 exports.createVM = async (req, res, next) => {
   console.log("Create VM");
 
+  console.log("req.body", req.body);
+
   if (req.user == null) {
     res.status(400).json({
       message: "The user should be provided, add the callback to the router to check if the user is logged"
@@ -216,90 +218,107 @@ exports.createVM = async (req, res, next) => {
   try {
     var data = await RequestHTTPS.post(options, postData)
 
-    console.log("RESPONE DATA");
+    console.log("RESPONE DATA FROM DIGITAL OCEAN");
     console.log(data);
 
     console.log("NEW REQUEST DATA");
     console.log(req.body);
-    let vm_id = data.droplets[0].id;
-    let action_id = 0;
+    // let vm_id = data.droplets[0].id;
+    // let action_id = 0;
 
-    //Add VM
-    VM.addVM({
-      "vm_id": vm_id,
-      "user_id": req.user.id
-    }).then(([rows, fields]) => {
-      //Create action
-      // let action = {
-      //   "vm_id": vm_id,
-      //   "type": "create",
-      //   "status": Action.STATUS_IN_PROGRESS()
-      // }
-      // return Action.addAction(action);
-      return actionController._create({
-        "vm_id": vm_id,
-        "type": Action.TYPE_CREATE()
+    let vm_ids = data.droplets.map(d => d.id);
+    console.log(vm_ids);
+
+    let action_ids = {};
+
+
+    for(let i=0; i< vm_ids.length; i++){
+      //Add VM
+      let result = await VM.addVM({
+        "vm_id": vm_ids[i],
+        "user_id": req.user.id
       });
 
-    }).then(([rows, fields]) => {
-      action_id = rows.insertId; //get action_id
-    }).catch(err => {
-      console.log(err);
-      throw new Error('Create VM and Action on server fail!')
-    });
+      if(result[0].affectedRows != 1) 
+        throw new Error('Cannot add new VM to local DB');
+      
+      //Add Action
+      result = await actionController._create({
+          "vm_id": vm_ids[i],
+          "type": Action.TYPE_CREATE()
+        });
+      
+      action_ids[vm_ids[i]] = result[0].insertId;
+    }
 
-    // Wait for it to come online
+    // Wait for them to come online
     let droplet = null;
+    let droplets = [];
+    let vm_ids_copy = [...vm_ids];
+    let done_ids = [];
 
     do {
       await sleep(5000);
-      const result = await getDroplet(vm_id);
-      droplet = result.droplet;
-      console.log("Droplet status: " + droplet.status);
-    } while (droplet.status === "new");
-
-    //send email
-    sendPasswdToUser({
-      "name": droplet.name,
-      "ipV4": droplet.networks.v4[0].ip_address,
-      "username": "root",
-      "password": password
-    }, req.user.email)
-
-    ///update action status
-    // Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
-    await actionController._update({
-      "action_id": action_id,
-      "status": Action.STATUS_COMPLETED()
-    });
-
-    //update ipV4 in localDB
-    await VM.updateIpV4(droplet.networks.v4[0].ip_address, vm_id);
-
-    //TODO: CALL /update_do_vms from QUANG
-    // let VMSsummary = await VM.getVMSsummary();
-    // console.log("VMSsummary: ", VMSsummary[0][0].result);
-
-    // let newVmInfo = ;
-    // NOTE: PLESASE COMMENT THIS HTTP IN DEVELOPMENT SERVER
-    RequestHTTP.post(
-      {
-        hostname: 'appliedresearch-nginx-reverse',
-        port: 80,
-        path: '/api/vms/',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      for(let i=0; i < vm_ids_copy.length ; i++){
+        let result = await getDroplet(vm_ids_copy[i]);
+        droplet = result.droplet;
+        if(droplet.status === "active"){
+          droplets.push(droplet);
+          done_ids.push(vm_ids_copy[i]);
         }
-      }, 
-      {
-        "vm_ip_address": droplet.networks.v4[0].ip_address,
-        "vm_name": vm_id,
-        "vm_owner": req.user.email,
-        "vm_group": "DO_VM"
+      }
+      console.log('done_ids', done_ids);
+      //filter done_ids
+      if(done_ids.length > 0){
+        vm_ids_copy = vm_ids_copy.filter(id => !done_ids.includes(id))
+        done_ids = [];
+      }
+
+    } while (droplets.length !== vm_ids.length);
+
+    for(let i=0; i<droplets.length; i++){
+      //send email
+      sendPasswdToUser({
+        "name": droplets[i].name,
+        "ipV4": droplets[i].networks.v4[0].ip_address,
+        "username": "root",
+        "password": password
+      }, req.user.email)
+
+      ///update action status
+      // Action.updateActionStatus(action_id, Action.STATUS_COMPLETED());
+      await actionController._update({
+        "action_id": action_ids[droplets[i].id],
+        "status": Action.STATUS_COMPLETED()
       });
 
-    res.status(201).json(droplet);
+      //update ipV4 in localDB
+      await VM.updateIpV4(droplets[i].networks.v4[0].ip_address, droplets[i].id);
+
+      //TODO: CALL /update_do_vms from QUANG
+      // let VMSsummary = await VM.getVMSsummary();
+      // console.log("VMSsummary: ", VMSsummary[0][0].result);
+
+      // NOTE: PLESASE COMMENT THIS HTTP IN DEVELOPMENT SERVER
+      RequestHTTP.post(
+        {
+          hostname: 'appliedresearch-nginx-reverse',
+          port: 80,
+          path: '/api/vms/',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }, 
+        {
+          "vm_ip_address": droplets[i].networks.v4[0].ip_address,
+          "vm_name": droplets[i].id,
+          "vm_owner": req.user.email,
+          "vm_group": "DO_VM"
+        });
+    }
+
+    res.status(201).json(droplets);
 
   } catch (err) {
     res.status(404).json(err)
