@@ -1,21 +1,31 @@
 import React, {useState} from 'react';
-import {StyleSheet, View, Text} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {TextInput, Button, HelperText} from 'react-native-paper';
 import {useDispatch} from 'react-redux';
 
 import {logInUser} from '../services/Firebase';
+import {API_CREATE_USER} from '../config/endpoints-conf';
 
-export default function SignIn({navigation}) {
+export default function SignUp() {
   const dispatch = useDispatch();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
   const submit = () => {
     let valid = true;
+
+    if (name === '') {
+      setNameError('Full name is required');
+      valid = false;
+    } else {
+      setNameError('');
+    }
 
     if (email === '') {
       setEmailError('Email address is required');
@@ -33,22 +43,47 @@ export default function SignIn({navigation}) {
 
     if (valid) {
       setLoading(true);
-      logInUser(email, password, dispatch).catch(err => {
-        const {message} = err;
-        setLoading(false);
-        setEmailError(message);
-      });
+      fetch(API_CREATE_USER, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          phone: ' ',
+          name: name,
+          address: ' ',
+        }),
+      })
+        .then(res => Promise.all([res.ok, res.json()]))
+        .then(([ok, res]) => {
+          if (!ok) {
+            console.log('Error during the sign up', ok, res);
+            const {message} = res;
+            setLoading(false);
+            setEmailError(message);
+          } else {
+            console.log('SignUp Success');
+            logInUser(email, password, dispatch);
+          }
+        });
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.contentContainer}>
       <View style={styles.marginBottom}>
+        <TextInput label="Full name" onChangeText={text => setName(text)} value={name} autoFocus={true} />
+        <HelperText type="error" visible={nameError !== ''}>
+          {nameError}
+        </HelperText>
+      </View>
+      <View style={styles.marginBottom}>
         <TextInput
           label="Email address"
           onChangeText={text => setEmail(text)}
           value={email}
-          autoFocus={true}
           keyboardType="email-address"
         />
         <HelperText type="error" visible={emailError !== ''}>
@@ -68,10 +103,6 @@ export default function SignIn({navigation}) {
         disabled={loading}
         onPress={() => submit()}>
         Submit
-      </Button>
-      <Text style={{textAlign: 'center'}}>Don't have an account?</Text>
-      <Button mode="text" onPress={() => navigation.navigate('SignUp')}>
-        Sign Up
       </Button>
     </ScrollView>
   );

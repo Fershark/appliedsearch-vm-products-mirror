@@ -10,7 +10,9 @@ import {useSelector} from 'react-redux';
 
 import configureStore from './store';
 import SignIn from './screens/SignIn';
+import SignUp from './screens/SignUp';
 import DrawerNavigator from './navigation/DrawerNavigator';
+import theme from './config/theme';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +23,7 @@ function Navigation() {
       {user == null ? (
         <Stack.Navigator>
           <Stack.Screen name="SignIn" component={SignIn} options={{title: 'Sign In'}} />
+          <Stack.Screen name="SignUp" component={SignUp} options={{title: 'Sign Up'}} />
         </Stack.Navigator>
       ) : (
         <DrawerNavigator />
@@ -35,7 +38,7 @@ export default function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <PaperProvider>
+        <PaperProvider theme={theme}>
           <NavigationContainer>
             <Navigation />
           </NavigationContainer>
