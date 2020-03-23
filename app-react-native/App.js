@@ -13,6 +13,7 @@ import SignIn from './screens/SignIn';
 import SignUp from './screens/SignUp';
 import DrawerNavigator from './navigation/DrawerNavigator';
 import theme from './config/theme';
+import {Appbar} from './components';
 
 const Stack = createStackNavigator();
 
@@ -21,7 +22,10 @@ function Navigation() {
   return (
     <>
       {user == null ? (
-        <Stack.Navigator>
+        <Stack.Navigator
+          screenOptions={{
+            header: Appbar,
+          }}>
           <Stack.Screen name="SignIn" component={SignIn} options={{title: 'Sign In'}} />
           <Stack.Screen name="SignUp" component={SignUp} options={{title: 'Sign Up'}} />
         </Stack.Navigator>
