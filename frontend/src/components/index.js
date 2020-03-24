@@ -6,3 +6,4 @@ export {default as MaterialTable} from './MaterialTable';
 export {default as LoadingPage} from './LoadingPage';
 export {default as SignUpForm} from './SignUpForm';
 export {default as SignInForm} from './SignInForm';
+export {default as ProductCard} from './ProductCard';

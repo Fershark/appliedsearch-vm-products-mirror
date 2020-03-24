@@ -5,7 +5,7 @@ import {
   API_GET_VMS,
   API_GET_PRODUCTS,
 } from '../../config/endpoints-conf';
-import {Drawer, Title, MaterialTable, LoadingPage, NestedList, SimpleTabs} from '../../components';
+import {Drawer, Title, MaterialTable, LoadingPage, ProductCard} from '../../components';
 import {
   Container, 
   Grid, 
@@ -123,14 +123,24 @@ class VMDetailPage extends React.Component{
     this.state = {
       loading: true,
       currentTab: 0,
-      vmInfo: {}
+      vmInfo: {},
+      products: {}
     }
   }
 
   //fetch data
   componentDidMount() {
+
+    const NUMBER_OF_JOBS = 2;
+    let jobDone = 0;
+
+    const doneJob = () => {
+      if (++jobDone === NUMBER_OF_JOBS)   
+        this.setState({loading: false})
+    }
+
     //because useEffect cannot define as async
-    const fetchData = async () => {
+    const fetchVMInfo = async () => {
       //get token
       const token = await getUserIdToken();
 
@@ -147,12 +157,29 @@ class VMDetailPage extends React.Component{
       console.log('dropletInfo', dropletInfo)
       
       this.setState({
-        vmInfo: dropletInfo,
-        loading: false
+        vmInfo: dropletInfo
       })
+
+      doneJob()
     }
 
-    fetchData();
+    const fetchProducts = async () => {
+      //fetch products
+      const result = await fetch(API_GET_PRODUCTS);
+      
+      //convert to JSON
+      const products = await result.json();
+      console.log('products', products)
+      
+      this.setState({
+        products: products
+      })
+
+      doneJob()
+    }
+
+    fetchProducts();
+    fetchVMInfo();
   }
 
   //Handlers
@@ -333,10 +360,9 @@ class VMDetailPage extends React.Component{
             </Grid>
           </div>
         </div>
-    
           </TabPanel>
           <TabPanel value={this.state.currentTab} index={1}>
-            Item Two
+            <ProductCard products={this.state.products}/>
           </TabPanel>
           </>
       }
