@@ -17,7 +17,7 @@ CREATE TABLE PRODUCTS (
      id INTEGER AUTO_INCREMENT PRIMARY KEY,
      name VARCHAR(255),
      description TEXT,
-     'version' VARCHAR(255)
+     `version` VARCHAR(255)
 );
 
 CREATE TABLE VMS(
