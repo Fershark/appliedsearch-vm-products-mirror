@@ -8,3 +8,4 @@ export const API_GET_VMS_REGIONS = API_ROOT_URL + "/api/vms/regions/";
 export const API_CREATE_VM = API_ROOT_URL + "/api/vms/";
 export const API_GET_VMS = API_ROOT_URL + "/api/vms/";
 export const API_DELETE_VM = API_ROOT_URL + "/api/vms/";
+export const API_GET_PRODUCTS = API_ROOT_URL + "/api/products";

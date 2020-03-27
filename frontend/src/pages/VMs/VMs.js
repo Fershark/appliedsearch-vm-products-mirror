@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {Link} from 'react-router-dom'
 import {Container} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
@@ -9,7 +10,7 @@ import {getUserIdToken} from '../../services/firebase';
 export default function VMs({appStyle, match, history}) {
   const {url} = match;
   const [loading, setLoading] = useState(true);
-  const [vms, setVms] = useState([]);
+  const [vms, setVms] = useState([]);// stateName and method to set state
 
   useEffect(() => {
     getUserIdToken()
@@ -71,7 +72,9 @@ export default function VMs({appStyle, match, history}) {
           <MaterialTable
             title={<Title>Virtual Machines</Title>}
             columns={[
-              {title: 'Name', field: 'name'},
+              {title: 'Name', field: 'name',
+            render: rowData => <Link to={"/vms/" + rowData.id}
+            style={{textDecoration: 'none', fontWeight: 'bold'}}>{rowData.name}</Link>},
               {title: 'Distribution', field: 'distribution'},
               {title: 'Status', field: 'status'},
               {title: 'IP address', field: 'ipAddress'},
