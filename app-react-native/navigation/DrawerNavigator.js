@@ -3,9 +3,9 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import {createStackNavigator} from '@react-navigation/stack';
 import {Button} from 'react-native-paper';
 
+import {Appbar, DrawerContent} from '../components';
 import Home from '../screens/Home';
 import SignOut from '../screens/SignOut';
-import {Appbar, DrawerContent} from '../components';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
@@ -14,7 +14,7 @@ function HomeNavigation({navigation}) {
   return (
     <Stack.Navigator
       screenOptions={{
-        header: Appbar,
+        header: headerProps => <Appbar {...headerProps} />,
       }}>
       <Stack.Screen name="Home" component={Home} options={{title: 'Home'}} />
     </Stack.Navigator>
