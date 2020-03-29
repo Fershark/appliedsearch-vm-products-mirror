@@ -1,5 +1,5 @@
 // place the users logic here
-const User = require('../models/User');
+const User = require('../models/user');
 
 const {
   firebaseAdmin
