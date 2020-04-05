@@ -7,7 +7,7 @@ import {
 } from '../../config/endpoints-conf';
 import { Drawer, Title, MaterialTable, LoadingPage, ProductCards } from '../../components';
 import {
-  Container,
+  CircularProgress,
   Grid,
   Paper,
   AppBar,
@@ -125,7 +125,9 @@ class VMDetailPage extends React.Component {
       currentTab: 0,
       vmInfo: {},
       products: {},
-      vmProducts: {}
+      vmProducts: {},
+      disableOnOff: false,
+
     }
   }
 
@@ -185,8 +187,8 @@ class VMDetailPage extends React.Component {
 
   //Handlers
   handleTabChange = (event, newValue) => {
-    
-    if(newValue === 0){
+
+    if (newValue === 0) {
       //because useEffect cannot define as async
       const fetchVMInfo = async () => {
         //get token
@@ -220,6 +222,38 @@ class VMDetailPage extends React.Component {
   handleProductActions = ({ type, product_id }) => {
 
     console.log({ type, product_id })
+  }
+
+  handleOnOffSwitchChange = async () => {
+
+    this.setState({
+      disableOnOff: true
+    })
+
+    const { id, status } = this.state.vmInfo;
+    const actionType = status === "active" ? "power-off" : "power-on"
+
+    //get token
+    const token = await getUserIdToken();
+
+    //create action
+    const result = await fetch(API_GET_VMS + '/' + id + '/' + actionType, {
+      method: 'POST',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json;charset=utf-8'
+      }
+    });
+
+    console.log(result)
+
+    this.setState(prevState => ({
+      disableOnOff: false,
+      vmInfo: {
+        ...prevState.vmInfo,
+        status: status === "active" ? "off" : "active"
+      }
+    }))
   }
 
   render() {
@@ -257,11 +291,18 @@ class VMDetailPage extends React.Component {
                           <Grid item>
                             <FormControlLabel
                               control={
-                                <IOSSwitch
-                                  checked={status === "active" ? true : false}
-                                  // onChange={handleChange}
-                                  name="checkedB"
-                                />
+                                <>
+                                  {this.state.disableOnOff
+                                    ? <CircularProgress />
+                                    : ""
+                                  }
+                                  <IOSSwitch
+                                    checked={status === "active" ? true : false}
+                                    onChange={this.handleOnOffSwitchChange}
+                                    name="checkedB"
+                                    disabled={this.state.disableOnOff}
+                                  />
+                                </>
                               }
                               label={
                                 <Typography color={status === "active" ? "primary" : "error"} variant="h6">
