@@ -111,7 +111,8 @@ export default function EditVM({appStyle, match, history}) {
         setDistributions(resDistributionsJson);
       }
       if (resSizes.ok) {
-        let sizesFiltered = resSizesJson.filter(({regions}) => regions.length === 12);
+        let sizesFiltered = resSizesJson.filter(({regions}) => regions.length === 13);
+        // let sizesFiltered = resSizesJson;
         const {slug} = sizesFiltered[0];
         setSize(slug);
         setSizes(sizesFiltered);
@@ -240,6 +241,7 @@ export default function EditVM({appStyle, match, history}) {
             </div>
             <SubTitle>Sizes</SubTitle>
             <div className={classes.cardRoot}>
+              {console.log(sizes)}
               {sizes.map(({slug, memory, vcpus, disk, transfer, price_monthly, price_hourly}) => (
                 <Card
                   key={slug}
@@ -326,7 +328,7 @@ export default function EditVM({appStyle, match, history}) {
                 ))}
               </Grid>
             </Grid>
-            <SubTitle>Do you want to add some products to the VMs?</SubTitle>
+            {/* <SubTitle>Do you want to add some products to the VMs?</SubTitle>
             <div className={classes.cardRoot}>
               {Object.keys(products).map(productName => (
                 <Card
@@ -356,7 +358,7 @@ export default function EditVM({appStyle, match, history}) {
                   </CardActions>
                 </Card>
               ))}
-            </div>
+            </div> */}
 
             <Button variant="contained" color="primary" style={{marginTop: 25}} onClick={submitVm}>
               Create VM
