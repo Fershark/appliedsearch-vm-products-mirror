@@ -42,7 +42,10 @@ class Actions {
 
       //Update VMS table if needed
       if(params.products)
-        await connection.execute(`UPDATE VMS SET products = '${JSON.stringify(params.products)}' WHERE id=${params.vm_id};`);
+        await connection.execute(`UPDATE VMS SET products = ? WHERE id = ?;`,
+        [JSON.stringify(params.products), 
+          params.vm_id]
+        );
 
       await connection.commit();
       return result;
@@ -74,7 +77,10 @@ class Actions {
 
       //Update VMS table if needed
       if(params.products)
-        await connection.execute(`UPDATE VMS SET products = '${JSON.stringify(params.products)}' WHERE id=${params.vm_id};`);
+        await connection.execute(`UPDATE VMS SET products = ? WHERE id = ?;`,
+        [JSON.stringify(params.products),
+          params.vm_id
+        ]);
 
       await connection.commit();
       return result;
