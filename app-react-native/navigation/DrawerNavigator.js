@@ -29,7 +29,7 @@ function VMNavigation({navigation}) {
       screenOptions={{
         header: headerProps => <Appbar {...headerProps} />,
       }}>
-      <Stack.Screen name="VMs" component={VMs} options={{title: 'Virtual Machines'}} />
+      <Stack.Screen name="VMs" component={VMs} options={{title: 'Virtual Machines'}} initialParams={{refresh: true}}/>
       <Stack.Screen name="VM" component={VM} options={{title: 'Add Virtual Machine'}} />
     </Stack.Navigator>
   );

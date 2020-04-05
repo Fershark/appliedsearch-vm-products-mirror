@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {View, StyleSheet, SafeAreaView} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {
-  ProgressBar,
   Title,
   Card,
   Subheading,
@@ -14,11 +13,13 @@ import {
   Button,
   Divider,
   Headline,
-  Caption
+  Caption,
+  TextInput,
+  Snackbar,
 } from 'react-native-paper';
+import {TextInput as NativeTextInput} from 'react-native';
 
 import theme from '../config/theme';
-
 import {
   API_GET_VMS_DISTRIBUTIONS,
   API_GET_VMS_SIZES,
@@ -27,8 +28,9 @@ import {
   API_GET_PRODUCTS,
 } from '../config/endpoints-conf';
 import {getUserIdToken} from '../services/Firebase';
+import {ProgressBar} from '../components';
 
-export default function VM({navigation}) {
+export default function VM({route, navigation}) {
   const [loading, setLoading] = useState(true);
   const [distributions, setDistributions] = useState([]);
   const [distribution, setDistribution] = useState({});
@@ -43,6 +45,7 @@ export default function VM({navigation}) {
   const {accent} = theme.colors;
   const [choosingDistribution, setChoosingDistribution] = useState(0);
   const [distributionSlug, setDistributionSlug] = useState('');
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
 
   useEffect(() => {
     const getData = async () => {
@@ -58,6 +61,7 @@ export default function VM({navigation}) {
         resRegions.json(),
         resProducts.json(),
       ]);
+      let regionsSet = null;
 
       if (resDistributions.ok) {
         const {name, data} = resDistributionsJson[0];
@@ -65,13 +69,8 @@ export default function VM({navigation}) {
         setDistribution({name, slug});
         setDistributions(resDistributionsJson);
       }
-      if (resSizes.ok) {
-        let sizesFiltered = resSizesJson.filter(({regions}) => regions.length === 12);
-        const {slug} = sizesFiltered[0];
-        setSize(slug);
-        setSizes(sizesFiltered);
-      }
       if (resRegions.ok) {
+        regionsSet = {};
         let regionsFiltered = resRegionsJson
           .filter(({slug}) => slug.includes('sfo') || slug.includes('nyc') || slug.includes('tor'))
           .reduce((accumulator, currentValue) => {
@@ -79,6 +78,7 @@ export default function VM({navigation}) {
             let key = slug.substring(0, slug.length - 1);
             if (accumulator[key] === undefined) {
               accumulator[key] = currentValue;
+              regionsSet[slug] = currentValue;
             }
             return accumulator;
           }, {});
@@ -86,6 +86,21 @@ export default function VM({navigation}) {
         let {slug} = regionsFiltered[0];
         setRegion(slug);
         setRegions(regionsFiltered);
+      }
+      if (resSizes.ok && regionsSet !== null) {
+        const regionsLength = Object.keys(regionsSet).length;
+        let sizesFiltered = resSizesJson.filter(({regions}) => {
+          let valid = 0;
+          for (let region of regions) {
+            if (regionsSet[region] !== undefined) {
+              valid++;
+            }
+          }
+          return valid == regionsLength;
+        });
+        const {slug} = sizesFiltered[0];
+        setSize(slug);
+        setSizes(sizesFiltered);
       }
       if (resProducts.ok) {
         let productsSelected = {};
@@ -111,9 +126,56 @@ export default function VM({navigation}) {
 
   console.log({distribution, size, region, emails, products, productsSelected});
 
+  const submitVm = () => {
+    let valid = true;
+    let newEmails = emails.slice();
+    let filteredEmails = [];
+    for (let i = 0; i < emails.length; i++) {
+      filteredEmails.push(newEmails[i].value);
+      if (newEmails[i].value === '') {
+        valid = false;
+        newEmails[i] = {...newEmails[i], error: ' '};
+      } else {
+        newEmails[i] = {...newEmails[i], error: ''};
+      }
+    }
+    setEmails(newEmails);
+    if (!valid) {
+      setSnackbarVisible(true);
+    } else {
+      setLoading(true);
+      getUserIdToken()
+        .then(token =>
+          fetch(API_CREATE_VM, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: token,
+            },
+            body: JSON.stringify({
+              size: size,
+              region: region,
+              names: filteredEmails,
+              image: distribution.slug,
+            }),
+          }),
+        )
+        .then(res => Promise.all([res.ok, res.json()]))
+        .then(([ok, res]) => {
+          if (ok) {
+            navigation.navigate('VMs', {refresh: true});
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          setLoading(false);
+        });
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ProgressBar indeterminate color={accent} style={styles.progressBar} visible={loading} />
+      <ProgressBar loading={loading} />
       <ScrollView style={styles.scrollView}>
         <Headline style={{color: accent}}>Distributions</Headline>
         <View style={styles.cardRoot}>
@@ -184,7 +246,7 @@ export default function VM({navigation}) {
                 <Title style={[styles.textCenter]}>{`$${price_monthly}/mo`}</Title>
                 <Caption style={[styles.textCenter]}>{`${price_hourly.toFixed(3)}/hour`}</Caption>
               </Card.Content>
-              <Divider style={{marginVertical: 5}}/>
+              <Divider style={{marginVertical: 5}} />
               <Card.Content>
                 <Paragraph style={[styles.textCenter]}>
                   {`${price_hourly.toFixed(3)}/hour\n`}
@@ -196,6 +258,64 @@ export default function VM({navigation}) {
             </Card>
           ))}
         </View>
+        <Headline style={{color: accent}}>Regions</Headline>
+        <View style={styles.cardRoot}>
+          {regions.map(({name, slug}) => (
+            <Card
+              key={slug}
+              style={[styles.card, slug === region && styles.cardSelected]}
+              onPress={() => setRegion(slug)}>
+              <Card.Content>
+                <Title style={styles.textCenter}>{`${name.substring(0, name.length - 2)}`}</Title>
+              </Card.Content>
+            </Card>
+          ))}
+        </View>
+        <Headline style={{color: accent}}>How many?</Headline>
+        <View style={styles.stepperContainer}>
+          <View>
+            <Button
+              mode="contained"
+              onPress={() => setEmails(emails.length > 1 ? emails.splice(0, emails.length - 1) : emails)}>
+              -
+            </Button>
+          </View>
+          <NativeTextInput
+            editable={false}
+            style={styles.stepperInput}
+            value={emails.length.toString()}
+            textAlign="center"
+          />
+          <View>
+            <Button
+              mode="contained"
+              onPress={() => setEmails(emails.length < 9 ? [...emails, {value: '', error: ''}] : emails)}>
+              +
+            </Button>
+          </View>
+        </View>
+        <Headline style={{color: accent}}>Virtual Machines Names</Headline>
+        {emails.map((email, index) => (
+          <TextInput
+            mode="outlined"
+            key={index}
+            placeholder={`Name ${index + 1}`}
+            value={email.value}
+            style={{marginBottom: 10}}
+            error={email.error !== ''}
+            onChangeText={text => {
+              let newEmails = emails.slice();
+              newEmails[index] = {value: text, error: ''};
+              setEmails(newEmails);
+            }}
+          />
+        ))}
+        <Button style={{marginBottom: 40}} mode="contained" loading={loading} disabled={loading} onPress={submitVm}>
+          Create VM
+        </Button>
+        <Snackbar visible={snackbarVisible} onDismiss={() => setSnackbarVisible(false)} duration={3000}>
+          There are some errors.
+        </Snackbar>
       </ScrollView>
     </SafeAreaView>
   );
@@ -208,10 +328,6 @@ const styles = StyleSheet.create({
   scrollView: {
     paddingVertical: 15,
     paddingHorizontal: 20,
-  },
-  progressBar: {
-    position: 'absolute',
-    top: 0,
   },
   cardRoot: {
     flex: 1,
@@ -241,5 +357,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
+  },
+  stepperContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    flexBasis: 'auto',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  stepperInput: {
+    flex: 2,
+    marginHorizontal: 5,
+    paddingVertical: 18,
+    fontWeight: 'bold',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    borderRadius: 4,
   },
 });
