@@ -23,5 +23,8 @@ routers.post('/', isAuth, vmController.createVM);
 
 routers.delete('/:id', isAuth, vmController.deleteVM)
 
+//actions on a vm
+routers.post('/:id/power-off', isAuth, vmController.powerOff);
+routers.post('/:id/power-on', isAuth, vmController.powerOn);
 
 module.exports = routers;
