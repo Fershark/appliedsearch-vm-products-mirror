@@ -50,6 +50,7 @@ export default function SignIn({navigation}) {
           value={email}
           autoFocus={true}
           keyboardType="email-address"
+          autoCapitalize="none"
         />
         <HelperText type="error" visible={emailError !== ''}>
           {emailError}

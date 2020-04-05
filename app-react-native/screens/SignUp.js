@@ -85,6 +85,7 @@ export default function SignUp() {
           onChangeText={text => setEmail(text)}
           value={email}
           keyboardType="email-address"
+          autoCapitalize="none"
         />
         <HelperText type="error" visible={emailError !== ''}>
           {emailError}

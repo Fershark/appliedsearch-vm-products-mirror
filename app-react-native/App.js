@@ -24,7 +24,7 @@ function Navigation() {
       {user == null ? (
         <Stack.Navigator
           screenOptions={{
-            header: Appbar,
+            header: (headerProps) => <Appbar {...headerProps} />,
           }}>
           <Stack.Screen name="SignIn" component={SignIn} options={{title: 'Sign In'}} />
           <Stack.Screen name="SignUp" component={SignUp} options={{title: 'Sign Up'}} />

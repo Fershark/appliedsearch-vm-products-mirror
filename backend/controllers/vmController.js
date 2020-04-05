@@ -5,7 +5,8 @@ const {
   DIGITAL_OCEAN_API_TOKEN,
   GMAIL_PASSWD,
   GMAIL_USER,
-  TEST_MAIL
+  TEST_MAIL,
+  DJANGO_API_HOST
 } = require('../config');
 
 const VM = require('../models/VM');
@@ -295,14 +296,10 @@ exports.createVM = async (req, res, next) => {
       //update ipV4 in localDB
       await VM.updateIpV4(droplets[i].networks.v4[0].ip_address, droplets[i].id);
 
-      //TODO: CALL /update_do_vms from QUANG
-      // let VMSsummary = await VM.getVMSsummary();
-      // console.log("VMSsummary: ", VMSsummary[0][0].result);
-
-      // NOTE: PLESASE COMMENT THIS HTTP IN DEVELOPMENT SERVER
+      // NOTE: CONNECT TO DJANGO API
       RequestHTTP.post(
         {
-          hostname: 'appliedresearch-nginx-reverse',
+          hostname: DJANGO_API_HOST,
           port: 80,
           path: '/api/vms/',
           method: 'POST',

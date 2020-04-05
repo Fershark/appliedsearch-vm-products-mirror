@@ -21,5 +21,6 @@ module.exports = {
     FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
     GMAIL_USER: process.env.GMAIL_USER,
     GMAIL_PASSWD: process.env.GMAIL_PASSWD,
-    TEST_MAIL: process.env.TEST_MAIL
+    TEST_MAIL: process.env.TEST_MAIL,
+    DJANGO_API_HOST: process.env.DJANGO_API_HOST
 }
