@@ -252,6 +252,7 @@ export default function EditVM({appStyle, match, history}) {
             </div>
             <SubTitle>Sizes</SubTitle>
             <div className={classes.cardRoot}>
+              {console.log(sizes)}
               {sizes.map(({slug, memory, vcpus, disk, transfer, price_monthly, price_hourly}) => (
                 <Card
                   key={slug}

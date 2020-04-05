@@ -164,6 +164,85 @@ exports.getVM = async (req, res, next) => {
   }
 };
 
+const actionOnVM = async (vm_id, action) => {
+  
+  console.log(action + " VM of id = " + vm_id);
+
+  const options = {
+    hostname: 'api.digitalocean.com',
+    port: 443,
+    path: '/v2/droplets/' + vm_id + '/actions',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DIGITAL_OCEAN_API_TOKEN}`
+    }
+  }
+
+  try{  
+
+    var data = await RequestHTTPS.post(options, {"type": action})
+    return data;
+
+  }catch(err){
+    console.log("ERROR from action on VM")
+    console.log(err);
+    throw err
+  }
+}
+
+exports.powerOff = async (req, res, next) => {
+  let vm_id = req.params.id;
+
+  try{
+    //validate user is vm's owner
+    await authorize.checkOwnership(req.user.id, vm_id);
+  
+    var data = await actionOnVM(vm_id, "power_off")
+    let result = null
+
+    do {
+      await sleep(2000);
+      result = await getDroplet(vm_id);
+      // console.log(result)
+    } while (result.droplet.status !== "off");
+
+    // console.log(data)
+
+    // data.droplet.products = result[0][0].products;
+    res.status(200).json({message: 'Success'});
+  }catch(err){
+    res.status(404).json(err)
+    console.log("ERROR from powerOff")
+    console.log(err);
+  }
+};
+
+exports.powerOn = async (req, res, next) => {
+  let vm_id = req.params.id;
+
+  try{
+    //validate user is vm's owner
+    await authorize.checkOwnership(req.user.id, vm_id);
+  
+    var data = await actionOnVM(vm_id, "power_on")
+    let result = null
+
+    do {
+      await sleep(2000);
+      result = await getDroplet(vm_id);
+      // console.log(result)
+    } while (result.droplet.status !== "active");
+
+    // console.log(data)
+    res.status(200).json({message: 'Success'});
+  }catch(err){
+    res.status(404).json(err)
+    console.log("ERROR from powerOn")
+    console.log(err);
+  }
+};
+
 exports.createVM = async (req, res, next) => {
   console.log("Create VM");
 

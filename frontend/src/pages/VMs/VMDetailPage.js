@@ -1,14 +1,14 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from "prop-types"
-import {getUserIdToken} from '../../services/firebase';
+import { getUserIdToken } from '../../services/firebase';
 import {
   API_GET_VMS,
   API_GET_PRODUCTS,
 } from '../../config/endpoints-conf';
-import {Drawer, Title, MaterialTable, LoadingPage, ProductCard} from '../../components';
+import { Drawer, Title, MaterialTable, LoadingPage, ProductCards } from '../../components';
 import {
-  Container, 
-  Grid, 
+  CircularProgress,
+  Grid,
   Paper,
   AppBar,
   Tabs,
@@ -18,7 +18,7 @@ import {
   List,
   ListItem,
   ListItemText,
-  Switch, 
+  Switch,
   FormControlLabel,
   Divider,
   Button
@@ -38,7 +38,7 @@ function TabPanel(props) {
       aria-labelledby={`simple-tab-${index}`}
       {...other}
     >
-      {value === index && <Box p={1}><Paper style={{padding: 8, margin: 8}}>{children}</Paper></Box>}
+      {value === index && <Box p={1}><Paper style={{ padding: 8, margin: 8 }}>{children}</Paper></Box>}
     </Typography>
   )
 }
@@ -57,7 +57,7 @@ const style = theme => ({
     backgroundColor: theme.palette.background.paper
   },
   section1: {
-    margin: theme.spacing(1,2)
+    margin: theme.spacing(1, 2)
   },
   section2: {
     margin: theme.spacing(1, 2)
@@ -116,7 +116,7 @@ const IOSSwitch = withStyles(theme => ({
     />
   )
 })
-class VMDetailPage extends React.Component{
+class VMDetailPage extends React.Component {
 
   constructor(props) {
     super(props);
@@ -124,7 +124,10 @@ class VMDetailPage extends React.Component{
       loading: true,
       currentTab: 0,
       vmInfo: {},
-      products: {}
+      products: {},
+      vmProducts: {},
+      disableOnOff: false,
+
     }
   }
 
@@ -135,8 +138,8 @@ class VMDetailPage extends React.Component{
     let jobDone = 0;
 
     const doneJob = () => {
-      if (++jobDone === NUMBER_OF_JOBS)   
-        this.setState({loading: false})
+      if (++jobDone === NUMBER_OF_JOBS)
+        this.setState({ loading: false })
     }
 
     //because useEffect cannot define as async
@@ -155,7 +158,7 @@ class VMDetailPage extends React.Component{
       //convert to JSON
       const dropletInfo = await result.json();
       console.log('dropletInfo', dropletInfo)
-      
+
       this.setState({
         vmInfo: dropletInfo
       })
@@ -166,11 +169,11 @@ class VMDetailPage extends React.Component{
     const fetchProducts = async () => {
       //fetch products
       const result = await fetch(API_GET_PRODUCTS);
-      
+
       //convert to JSON
       const products = await result.json();
       console.log('products', products)
-      
+
       this.setState({
         products: products
       })
@@ -184,190 +187,254 @@ class VMDetailPage extends React.Component{
 
   //Handlers
   handleTabChange = (event, newValue) => {
+
+    if (newValue === 0) {
+      //because useEffect cannot define as async
+      const fetchVMInfo = async () => {
+        //get token
+        const token = await getUserIdToken();
+
+        //fetch vm-detail
+        const result = await fetch(
+          API_GET_VMS + this.props.match.params.id, {
+          headers: {
+            Authorization: token,
+          },
+        });
+
+        //convert to JSON
+        const dropletInfo = await result.json();
+        console.log('dropletInfo', dropletInfo)
+
+        this.setState({
+          vmInfo: dropletInfo
+        })
+      }
+
+      fetchVMInfo();
+    }
+
     this.setState({
       currentTab: newValue
     })
   }
 
-  render(){
-    const {appStyle, match, history, classes} = this.props;
-    const {id, name, image, status, networks, region, vcpus, memory, disk, created_at, products} = this.state.vmInfo;
+  handleProductActions = ({ type, product_id }) => {
 
-    return(
-    <React.Fragment>
-      <div className={appStyle.root}>
-      <Drawer />
-      <main className={appStyle.content}>
-      <AppBar position="static">
-            <Tabs
-              value={this.state.currentTab}
-              onChange={this.handleTabChange}
-              aria-label="simple tabs example"
-            >
-              <Tab label="VM Info"/>
-              <Tab label="Marketplace"/>
-            </Tabs>
-          </AppBar>
-      {
-        this.state.loading
-        ? <LoadingPage open={this.state.loading} />
-        : <>
-          <TabPanel value={this.state.currentTab} index={0}>
-          <div className={classes.root}>
-          <div className={classes.section1}>
-            <Grid container alignItems="center">
-              <Grid item xs={8}>
-                <Typography gutterBottom variant="h3" color="primary">
-                  {name}
-                </Typography>
-              </Grid>
-              <Grid item>
-                <FormControlLabel
-                  control={
-                    <IOSSwitch
-                      checked={status === "active"? true : false}
-                      // onChange={handleChange}
-                      name="checkedB"
-                    />
-                  }
-                  label={
-                    <Typography color={status === "active"? "primary" : "error"} variant="h6">
-                      <Box fontWeight="fontWeightBold">
-                      {status === "active"? "ON" : "OFF"}
-                      </Box>
-                    </Typography>
-                    }
-                />
-              </Grid>
-            </Grid>
-    
-            <Grid container alignItems="center">
-              <Grid item xs>
-                <Typography color="textSecondary" variant="subtitle1">
-                {`${image.distribution} ${image.name}`}
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography color="textSecondary" variant="subtitle1">
-                  {`created ${Math.round((Date.now() 
-                    - Date.parse(created_at))/60000)} minutes ago`}
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography color="textSecondary" variant="subtitle1">
-                  {`at ${region.name} data center`}
-                </Typography>
-              </Grid>
-            </Grid>
-          </div>
-          <Divider variant="middle" />
-          <div className={classes.section2}>
-            <Grid container alignItems="center">
-              <Grid item xs={12}>
-                <Typography gutterBottom variant="h5" color="secondary">
-                  Size
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography variant="h6">VCPUs</Typography>
-                <Typography color="textSecondary" variant="subtitle1">
-                  {vcpus}
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography variant="h6">Memory</Typography>
-                <Typography color="textSecondary" variant="subtitle1">
-                  {`${memory/1024} GB`}
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography variant="h6">Disk</Typography>
-                <Typography color="textSecondary" variant="subtitle1">
-                  {`${disk} GB`}
-                </Typography>
-              </Grid>
-            </Grid>
-          </div>
-          <Divider variant="middle" />
-          <div className={classes.section2}>
-            <Grid container alignItems="center">
-              <Grid item xs={12}>
-                <Typography gutterBottom variant="h5" color="secondary">
-                  Networking
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography variant="h6">IP address</Typography>
-                <Typography color="textSecondary" variant="subtitle1">
-                  {networks.v4[0].ip_address}
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography variant="h6">Gateway</Typography>
-                <Typography color="textSecondary" variant="subtitle1">
-                  {networks.v4[0].gateway}
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography variant="h6">Netmask</Typography>
-                <Typography color="textSecondary" variant="subtitle1">
-                  {networks.v4[0].netmask}
-                </Typography>
-              </Grid>
-            </Grid>
-          </div>
-          <Divider variant="middle" />
-          <div className={classes.section2}>
-            <Grid container alignItems="center">
-              <Grid item xs={12}>
-                <Typography gutterBottom variant="h5" color="secondary">
-                  Products
-                </Typography>
-              </Grid>
-              {(Object.keys(products).length === 0 && products.constructor === Object)
-              ? <Grid item xs>
-                <Typography variant="h6" align="center">Looks like you don’t have any Products.</Typography>
-                <Typography color="textSecondary" variant="subtitle1" align="center">
-                Fortunately, it’s very easy to install one.
-                </Typography>
-                <Button variant="contained" color="primary" style={{display: 'block', margin: "0 auto"}}>
-                Add Product
-                </Button>
-              </Grid>
-              :<Grid item xs>
-              <Typography variant="h6">Your Products</Typography>
-            </Grid>
-              }
+    console.log({ type, product_id })
+  }
 
-              {/* <Grid item xs>
-                <Typography variant="h6">OS</Typography>
-                <Typography color="textSecondary" variant="subtitle1">
-                  Ubuntu 16.04 x64
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography variant="h6">OS</Typography>
-                <Typography color="textSecondary" variant="subtitle1">
-                  Ubuntu 16.04 x64
-                </Typography>
-              </Grid>
-              <Grid item xs>
-                <Typography variant="h6">OS</Typography>
-                <Typography color="textSecondary" variant="subtitle1">
-                  Ubuntu 16.04 x64
-                </Typography>
-              </Grid> */}
-            </Grid>
-          </div>
-        </div>
-          </TabPanel>
-          <TabPanel value={this.state.currentTab} index={1}>
-            <ProductCard products={this.state.products}/>
-          </TabPanel>
-          </>
+  handleOnOffSwitchChange = async () => {
+
+    this.setState({
+      disableOnOff: true
+    })
+
+    const { id, status } = this.state.vmInfo;
+    const actionType = status === "active" ? "power-off" : "power-on"
+
+    //get token
+    const token = await getUserIdToken();
+
+    //create action
+    const result = await fetch(API_GET_VMS + '/' + id + '/' + actionType, {
+      method: 'POST',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json;charset=utf-8'
       }
-      </main>
-      </div>
+    });
+
+    console.log(result)
+
+    this.setState(prevState => ({
+      disableOnOff: false,
+      vmInfo: {
+        ...prevState.vmInfo,
+        status: status === "active" ? "off" : "active"
+      }
+    }))
+  }
+
+  render() {
+    const { appStyle, match, history, classes } = this.props;
+    const { id, name, image, status, networks, region, vcpus, memory, disk, created_at, products } = this.state.vmInfo;
+
+    return (
+      <React.Fragment>
+        <div className={appStyle.root}>
+          <Drawer />
+          <main className={appStyle.content}>
+            <AppBar position="static">
+              <Tabs
+                value={this.state.currentTab}
+                onChange={this.handleTabChange}
+                aria-label="simple tabs example"
+              >
+                <Tab label="VM Info" />
+                <Tab label="Marketplace" />
+              </Tabs>
+            </AppBar>
+            {
+              this.state.loading
+                ? <LoadingPage open={this.state.loading} />
+                : <>
+                  <TabPanel value={this.state.currentTab} index={0}>
+                    <div className={classes.root}>
+                      <div className={classes.section1}>
+                        <Grid container alignItems="center">
+                          <Grid item xs={8}>
+                            <Typography gutterBottom variant="h3" color="primary">
+                              {name}
+                            </Typography>
+                          </Grid>
+                          <Grid item>
+                            <FormControlLabel
+                              control={
+                                <>
+                                  {this.state.disableOnOff
+                                    ? <CircularProgress />
+                                    : ""
+                                  }
+                                  <IOSSwitch
+                                    checked={status === "active" ? true : false}
+                                    onChange={this.handleOnOffSwitchChange}
+                                    name="checkedB"
+                                    disabled={this.state.disableOnOff}
+                                  />
+                                </>
+                              }
+                              label={
+                                <Typography color={status === "active" ? "primary" : "error"} variant="h6">
+                                  <Box fontWeight="fontWeightBold">
+                                    {status === "active" ? "ON" : "OFF"}
+                                  </Box>
+                                </Typography>
+                              }
+                            />
+                          </Grid>
+                        </Grid>
+
+                        <Grid container alignItems="center">
+                          <Grid item xs>
+                            <Typography color="textSecondary" variant="subtitle1">
+                              {`${image.distribution} ${image.name}`}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs>
+                            <Typography color="textSecondary" variant="subtitle1">
+                              {`created ${Math.round((Date.now()
+                                - Date.parse(created_at)) / 60000)} minutes ago`}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs>
+                            <Typography color="textSecondary" variant="subtitle1">
+                              {`at ${region.name} data center`}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                      </div>
+                      <Divider variant="middle" />
+                      <div className={classes.section2}>
+                        <Grid container alignItems="center">
+                          <Grid item xs={12}>
+                            <Typography gutterBottom variant="h5" color="secondary">
+                              Size
+                </Typography>
+                          </Grid>
+                          <Grid item xs>
+                            <Typography variant="h6">VCPUs</Typography>
+                            <Typography color="textSecondary" variant="subtitle1">
+                              {vcpus}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs>
+                            <Typography variant="h6">Memory</Typography>
+                            <Typography color="textSecondary" variant="subtitle1">
+                              {`${memory / 1024} GB`}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs>
+                            <Typography variant="h6">Disk</Typography>
+                            <Typography color="textSecondary" variant="subtitle1">
+                              {`${disk} GB`}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                      </div>
+                      <Divider variant="middle" />
+                      <div className={classes.section2}>
+                        <Grid container alignItems="center">
+                          <Grid item xs={12}>
+                            <Typography gutterBottom variant="h5" color="secondary">
+                              Networking
+                </Typography>
+                          </Grid>
+                          <Grid item xs>
+                            <Typography variant="h6">IP address</Typography>
+                            <Typography color="textSecondary" variant="subtitle1">
+                              {networks.v4[0].ip_address}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs>
+                            <Typography variant="h6">Gateway</Typography>
+                            <Typography color="textSecondary" variant="subtitle1">
+                              {networks.v4[0].gateway}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs>
+                            <Typography variant="h6">Netmask</Typography>
+                            <Typography color="textSecondary" variant="subtitle1">
+                              {networks.v4[0].netmask}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                      </div>
+                      <Divider variant="middle" />
+                      <div className={classes.section2}>
+                        <Grid container alignItems="center">
+                          <Grid item xs={12}>
+                            <Typography gutterBottom variant="h5" color="secondary">
+                              Products
+                </Typography>
+                          </Grid>
+                          {(Object.keys(products).length === 0 && products.constructor === Object)
+                            ? <Grid item xs>
+                              <Typography variant="h6" align="center">Looks like you don’t have any Products.</Typography>
+                              <Typography color="textSecondary" variant="subtitle1" align="center">
+                                Fortunately, it’s very easy to install one.
+                </Typography>
+                              <Button variant="contained" color="primary" style={{ display: 'block', margin: "0 auto" }}>
+                                Add Product
+                </Button>
+                            </Grid>
+                            : <Grid item xs>
+                              <ProductCards
+                                products={this.state.products}
+                                handleProductActions={this.handleProductActions}
+                                vmId={id}
+                                productsInVM={products}
+                                displayAll={false}
+                              />
+                            </Grid>
+                          }
+                        </Grid>
+                      </div>
+                    </div>
+                  </TabPanel>
+                  <TabPanel value={this.state.currentTab} index={1}>
+                    <ProductCards
+                      products={this.state.products}
+                      handleProductActions={this.handleProductActions}
+                      vmId={id}
+                      productsInVM={products}
+                      displayAll={true}
+                    />
+                  </TabPanel>
+                </>
+            }
+          </main>
+        </div>
       </React.Fragment>
     )
   }
