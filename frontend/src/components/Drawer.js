@@ -66,12 +66,12 @@ export default ({open = true}) => {
       </Paper>
       <Divider />
       <List>
-        <ListItem button component={NavLink} to="/home" activeClassName="Mui-selected">
+        {/* <ListItem button component={NavLink} to="/home" activeClassName="Mui-selected">
           <ListItemIcon>
             <DashboardIcon />
           </ListItemIcon>
           <ListItemText primary="Home" />
-        </ListItem>
+        </ListItem> */}
         <ListItem button component={NavLink} to="/vms" activeClassName="Mui-selected">
           <ListItemIcon>
             <ComputerIcon />

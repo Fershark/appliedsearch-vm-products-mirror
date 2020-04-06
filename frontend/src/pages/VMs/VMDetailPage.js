@@ -404,14 +404,14 @@ class VMDetailPage extends React.Component {
                               <Typography color="textSecondary" variant="subtitle1" align="center">
                                 Fortunately, it’s very easy to install one.
                 </Typography>
-                              <Button variant="contained" color="primary" style={{ display: 'block', margin: "0 auto" }}>
+                              <Button variant="contained" color="primary" style={{ display: 'block', margin: "0 auto" }} onClick={() => this.handleTabChange({}, 1)}>
                                 Add Product
                 </Button>
                             </Grid>
                             : <Grid item xs>
                               <ProductCards
                                 products={this.state.products}
-                                handleProductActions={this.handleProductActions}
+                                handleTabChange={this.handleTabChange}
                                 vmId={id}
                                 productsInVM={products}
                                 displayAll={false}
@@ -425,7 +425,7 @@ class VMDetailPage extends React.Component {
                   <TabPanel value={this.state.currentTab} index={1}>
                     <ProductCards
                       products={this.state.products}
-                      handleProductActions={this.handleProductActions}
+                      handleTabChange={this.handleTabChange}
                       vmId={id}
                       productsInVM={products}
                       displayAll={true}
