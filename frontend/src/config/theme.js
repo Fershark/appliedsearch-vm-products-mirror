@@ -3,8 +3,10 @@ import {teal, amber} from '@material-ui/core/colors/';
 
 export default createMuiTheme({
   palette: {
-    primary: {main: "#2196F3"},
-    secondary: {main: "#1287B9"},
+    // primary: {main: "#2196F3"},
+    // secondary: {main: "#1287B9"},
+    primary: teal,
+    secondary: amber,
   },
   overrides: {
     MuiLinearProgress: {
