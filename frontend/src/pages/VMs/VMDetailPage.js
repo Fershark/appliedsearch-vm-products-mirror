@@ -404,7 +404,7 @@ class VMDetailPage extends React.Component {
                               <Typography color="textSecondary" variant="subtitle1" align="center">
                                 Fortunately, it’s very easy to install one.
                 </Typography>
-                              <Button variant="contained" color="primary" style={{ display: 'block', margin: "0 auto" }}>
+                              <Button variant="contained" color="primary" style={{ display: 'block', margin: "0 auto" }} onClick={() => this.handleTabChange({}, 1)}>
                                 Add Product
                 </Button>
                             </Grid>
