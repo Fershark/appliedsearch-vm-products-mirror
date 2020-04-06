@@ -1,7 +1,7 @@
-import React, {useState, useEffect} from 'react';
-import {View, StyleSheet, SafeAreaView} from 'react-native';
+import React, {useState, useEffect, useCallback} from 'react';
+import {View, StyleSheet, SafeAreaView, RefreshControl} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {Subheading, Switch, Text, Headline, Button} from 'react-native-paper';
+import {Subheading, Switch, Text, Headline, Button, Card, Title, Paragraph} from 'react-native-paper';
 
 import theme from '../config/theme';
 import {API_GET_VMS, API_DELETE_VM} from '../config/endpoints-conf';
@@ -11,10 +11,10 @@ import {getUserIdToken} from '../services/Firebase';
 export default function VMDetail({route, navigation}) {
   const [loading, setLoading] = useState(true);
   const [vmInfo, setVmInfo] = useState(route.params.vm);
-  const [refresh, setRefresh] = useState(true);
+  const [statusText, setStatusText] = useState(route.params.vm.status === 'active' ? 'ON' : 'OFF');
   const {id, name, image, status, networks, region, vcpus, memory, disk, created_at, products} = vmInfo;
 
-  useEffect(() => {
+  const getData = useCallback(() => {
     const fetchVMInfo = async () => {
       setLoading(true);
       const token = await getUserIdToken();
@@ -24,17 +24,27 @@ export default function VMDetail({route, navigation}) {
         },
       });
       const resultJson = await result.json();
+      let products = [];
+      for (let [id, data] of Object.entries(resultJson.products)) {
+        products.push({id, ...data});
+      }
+      resultJson.products = products;
+      setStatusText(resultJson.status === 'active' ? 'ON' : 'OFF');
       setVmInfo(resultJson);
       setLoading(false);
     };
+    fetchVMInfo();
+  }, []);
 
-    if (refresh) {
-      setRefresh(false);
-      fetchVMInfo();
+  useEffect(() => {
+    if (route.params.refresh) {
+      route.params.refresh = false;
+      getData();
     }
-  }, [refresh]);
+  }, [route.params.refresh, getData]);
 
   const handleOnOffSwitchChange = async () => {
+    setStatusText('Processing');
     const actionType = status === 'active' ? 'power-off' : 'power-on';
     const token = await getUserIdToken();
     try {
@@ -49,9 +59,30 @@ export default function VMDetail({route, navigation}) {
         ...vmInfo,
         status: status === 'active' ? 'off' : 'active',
       });
+      setStatusText(status === 'active' ? 'OFF' : 'ON');
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const deleteVm = async () => {
+    setLoading(true);
+    const token = await getUserIdToken();
+    try {
+      const resDelete = await fetch(`${API_DELETE_VM}${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: token,
+        },
+      });
+      if (resDelete.ok) {
+        console.log('here');
+        navigation.dangerouslyGetParent().navigate('VMs', {refresh: true});
+      }
+    } catch (error) {
+      console.log({error});
+    }
+    setLoading(false);
   };
 
   return (
@@ -60,8 +91,10 @@ export default function VMDetail({route, navigation}) {
         <ProgressBar loading={loading} />
       ) : (
         <>
-          <ScrollView style={styles.scrollView}>
-            <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
+          <ScrollView
+            style={styles.scrollView}
+            refreshControl={<RefreshControl refreshing={loading} onRefresh={() => getData()} />}>
+            <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5}}>
               <Subheading>{`${image.distribution} ${image.name}`}</Subheading>
               <View style={styles.row}>
                 <Switch
@@ -69,13 +102,18 @@ export default function VMDetail({route, navigation}) {
                   value={status === 'active'}
                   onValueChange={() => handleOnOffSwitchChange()}
                 />
-                <Text>{status === 'active' ? 'ON' : 'OFF'}</Text>
+                <Text>{statusText}</Text>
               </View>
             </View>
             <Caption>
               {`created ${Math.round((Date.now() - Date.parse(created_at)) / 60000)} minutes ago`}
               {` at ${region.name} data center`}
             </Caption>
+            <View style={{alignItems: 'center'}}>
+              <Button style={{backgroundColor: 'red'}} mode="contained" onPress={() => deleteVm()}>
+                Delete VM
+              </Button>
+            </View>
             <Headline style={styles.accentColor}>Size</Headline>
             <View style={styles.row}>
               <Text>VCPUs: </Text>
@@ -103,7 +141,7 @@ export default function VMDetail({route, navigation}) {
               <Caption>{networks.v4[0].netmask}</Caption>
             </View>
             <Headline style={styles.accentColor}>Products</Headline>
-            {Object.keys(products).length === 0 && products.constructor === Object ? (
+            {products.length === 0 ? (
               <>
                 <Text style={styles.textCenter}>Looks like you don’t have any Products.</Text>
                 <Caption style={styles.textCenter}>Fortunately, it’s very easy to install one.</Caption>
@@ -114,19 +152,21 @@ export default function VMDetail({route, navigation}) {
                 </View>
               </>
             ) : (
-              {
-                /*
-              <Grid item xs>
-                <ProductCards
-                  products={this.state.products}
-                  handleProductActions={this.handleProductActions}
-                  vmId={id}
-                  productsInVM={products}
-                  displayAll={false}
-                />
-              </Grid>
-              */
-              }
+              <View style={styles.cardRoot}>
+                {products.map(({id, name, status, version, description}) => (
+                  <Card key={id} style={styles.card} onPress={() => {}}>
+                    <Card.Content style={{justifyContent: 'space-between', height: 214}}>
+                      <View style={{}}>
+                        <Title style={styles.primaryColor}>{name}</Title>
+                        <Paragraph numberOfLines={5}>{description}</Paragraph>
+                      </View>
+                      <Caption style={styles.textCenter}>
+                        {`${status[0].toUpperCase()}${status.slice(1)} version ${version}`}
+                      </Caption>
+                    </Card.Content>
+                  </Card>
+                ))}
+              </View>
             )}
           </ScrollView>
         </>
@@ -152,5 +192,25 @@ const styles = StyleSheet.create({
   },
   textCenter: {
     textAlign: 'center',
+  },
+  //CARDs
+  cardRoot: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-evenly',
+    flexBasis: 'auto',
+    marginBottom: 30,
+  },
+  primaryColor: {
+    color: theme.colors.primary,
+  },
+  card: {
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#676767',
+    marginBottom: 10,
+    width: 160,
+    height: 200,
   },
 });

@@ -11,6 +11,7 @@ import SignOut from '../screens/SignOut';
 import VMs from '../screens/VMs';
 import VM from '../screens/VM';
 import VMDetail from '../screens/VMDetail';
+import VMMarketplace from '../screens/VMMarketplace';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
@@ -53,8 +54,8 @@ function VMDetailNavigation({route, navigation}) {
         indicatorStyle: {backgroundColor: theme.colors.accent},
         style: {backgroundColor: theme.colors.primary},
       }}>
-      <Tab.Screen name="VM Info" component={VMDetail} initialParams={{...route.params}} />
-      <Tab.Screen name="Marketplace" component={Home} initialParams={{...route.params}} />
+      <Tab.Screen name="VM Info" component={VMDetail} initialParams={{...route.params, refresh: true}} />
+      <Tab.Screen name="Marketplace" component={VMMarketplace} initialParams={{...route.params, refresh: true}} />
     </Tab.Navigator>
   );
 }
