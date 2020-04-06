@@ -7,7 +7,7 @@ module.exports = class Product {
 
     //product status on a vm
     static STATUS_INSTALLING = () => "installing";
-    static STATUS_UNSTALLING = () => "unstalling";
+    static STATUS_UNSTALLING = () => "uninstalling";
     static STATUS_INSTALLED = () => "installed";
     static STATUS_ERRORED = () => "errored";
 

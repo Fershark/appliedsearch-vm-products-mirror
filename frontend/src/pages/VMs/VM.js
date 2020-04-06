@@ -103,6 +103,7 @@ export default function EditVM({appStyle, match, history}) {
         resRegions.json(),
         resProducts.json()
       ]);
+      let regionsSet = null;
 
       if (resDistributions.ok) {
         const {name, data} = resDistributionsJson[0];
@@ -110,13 +111,8 @@ export default function EditVM({appStyle, match, history}) {
         setDistribution({name, slug});
         setDistributions(resDistributionsJson);
       }
-      if (resSizes.ok) {
-        let sizesFiltered = resSizesJson.filter(({regions}) => regions.length === 12);
-        const {slug} = sizesFiltered[0];
-        setSize(slug);
-        setSizes(sizesFiltered);
-      }
       if (resRegions.ok) {
+        regionsSet = {};
         let regionsFiltered = resRegionsJson
           .filter(({slug}) => slug.includes('sfo') || slug.includes('nyc') || slug.includes('tor'))
           .reduce((accumulator, currentValue) => {
@@ -124,6 +120,7 @@ export default function EditVM({appStyle, match, history}) {
             let key = slug.substring(0, slug.length - 1);
             if (accumulator[key] === undefined) {
               accumulator[key] = currentValue;
+              regionsSet[slug] = currentValue;
             }
             return accumulator;
           }, {});
@@ -131,6 +128,21 @@ export default function EditVM({appStyle, match, history}) {
         let {slug} = regionsFiltered[0];
         setRegion(slug);
         setRegions(regionsFiltered);
+      }
+      if (resSizes.ok && regionsSet !== null) {
+        const regionsLength = Object.keys(regionsSet).length;
+        let sizesFiltered = resSizesJson.filter(({regions}) => {
+          let valid = 0;
+          for (let region of regions) {
+            if (regionsSet[region] !== undefined) {
+              valid++;
+            }
+          }
+          return valid == regionsLength;
+        });
+        const {slug} = sizesFiltered[0];
+        setSize(slug);
+        setSizes(sizesFiltered);
       }
       if (resProducts.ok) {
         let productsSelected = {};
@@ -159,9 +171,11 @@ export default function EditVM({appStyle, match, history}) {
         newEmails[i] = {...newEmails[i], error: ''};
       }
     }
+    setEmails(newEmails);
     if (!valid) {
       toast.error('There are some errors.');
     } else {
+      setLoading(true);
       getUserIdToken()
         .then(token =>
           fetch(API_CREATE_VM, {
@@ -189,8 +203,6 @@ export default function EditVM({appStyle, match, history}) {
           setLoading(false);
         });
     }
-    setLoading(true);
-    setEmails(newEmails);
   };
 
   console.log({distribution, size, region, emails, products, productsSelected});
@@ -240,6 +252,7 @@ export default function EditVM({appStyle, match, history}) {
             </div>
             <SubTitle>Sizes</SubTitle>
             <div className={classes.cardRoot}>
+              {console.log(sizes)}
               {sizes.map(({slug, memory, vcpus, disk, transfer, price_monthly, price_hourly}) => (
                 <Card
                   key={slug}
@@ -326,6 +339,7 @@ export default function EditVM({appStyle, match, history}) {
                 ))}
               </Grid>
             </Grid>
+            {/*
             <SubTitle>Do you want to add some products to the VMs?</SubTitle>
             <div className={classes.cardRoot}>
               {Object.keys(products).map(productName => (
@@ -357,6 +371,7 @@ export default function EditVM({appStyle, match, history}) {
                 </Card>
               ))}
             </div>
+            */}
 
             <Button variant="contained" color="primary" style={{marginTop: 25}} onClick={submitVm}>
               Create VM
