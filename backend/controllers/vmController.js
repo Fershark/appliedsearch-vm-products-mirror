@@ -283,7 +283,7 @@ exports.createVM = async (req, res, next) => {
     groups: sudo
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     ssh-authorized-keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLYPP/fHevjbng9Y+4pBtPxfJuyxAQGWhldViQiVt07uN577BmtAooEZf3uZKDbA9JCTDlcfQRwsCsyJZuebDAFvpRVidwhrvafLYHmBXFYzmR546m5S+bFAgeXQcxdgQkHfgF8Vuz5aA0XN+gtIYTGPwpalPJTzm03uHfxkut/YsubhlqyLI5jzYXkTfRc1vRRaCwh3ZnHwUZqbW8zxzwGkMpMGw9ZKBEBL7YhsnXBhXYOLJ600Sb8wTxN1moV5UiITgH0ohAfqlHxZG0pdwb5OhweWYUG5Ldgx7jK98Ti9Y5WYGzNdzSEBKqdj+ksC6B56waEnZ0D/nQ0rrR1K7X nvdha@nvdhau
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3cYuaOBUn9WOlrW8Jpi8KdBFbL/PSjo/XE15YaSyo/XPzQHbxbij/w1ue0e8rGWNaPBBVTs+qJscFav9olnzyhOLABZN4ntwtfB2R/XGjD/s78Bn+8e5nh6+Zhysu7XWgxrh2C9pw7QOc1GcXwhw8gaoTfYzVBmdcN2x22CgSjCXOn+zZmvCqZMJlUPdLW/NqzDm12AFYMtrM2yXfoZwurvMkNvmOH/zYfOB6CC0b6PRAjFfXRue8TEdl79V7ZTHqheyl12IVTAqQNFzb2P4BZU5CbEYo8FGYpUNgg0CllYyYc5mq1w0boaM0+ee8mqlKBZuPs9EaQD+S7n22J4Vt quangle@ansibleserver
 
   chpasswd:
     list: |
