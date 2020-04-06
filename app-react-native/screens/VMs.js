@@ -78,10 +78,10 @@ export default function VMs({route, navigation}) {
             title={item.name}
             description={`distribution: ${item.distribution}\nstatus: ${item.status}\nIP: ${item.ipAddress}\nregion: ${item.region}\ncpus: ${item.cpus}\nmemory: ${item.memory}\ndisk: ${item.disk}`}
             descriptionNumberOfLines={7}
-            onPress={() => console.log(item)}
+            onPress={() => navigation.navigate('VMDetail', {vm: item})}
           />
         )}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
       />
       <FAB style={styles.fab} small icon="plus" onPress={() => navigation.navigate('VM')} />
     </SafeAreaView>

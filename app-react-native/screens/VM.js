@@ -42,7 +42,6 @@ export default function VM({route, navigation}) {
   const [products, setProducts] = useState({});
   const [productsSelected, setProductsSelected] = useState({});
   //React Native
-  const {accent} = theme.colors;
   const [choosingDistribution, setChoosingDistribution] = useState(0);
   const [distributionSlug, setDistributionSlug] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -177,7 +176,7 @@ export default function VM({route, navigation}) {
     <SafeAreaView style={styles.container}>
       <ProgressBar loading={loading} />
       <ScrollView style={styles.scrollView}>
-        <Headline style={{color: accent}}>Distributions</Headline>
+        <Headline style={styles.accentColor}>Distributions</Headline>
         <View style={styles.cardRoot}>
           {distributions.map(({name, data}, index) => (
             <Card
@@ -197,7 +196,7 @@ export default function VM({route, navigation}) {
           <Portal>
             <Dialog visible={choosingDistribution > 0} onDismiss={hideDistributionDialog}>
               <Dialog.Title>
-                <Headline style={{color: accent}}>
+                <Headline style={styles.accentColor}>
                   {choosingDistribution > 0 ? `${distributions[choosingDistribution - 1].name}\n` : ''}
                 </Headline>
                 Choose an option
@@ -238,7 +237,7 @@ export default function VM({route, navigation}) {
             </Dialog>
           </Portal>
         </View>
-        <Headline style={{color: accent}}>Sizes</Headline>
+        <Headline style={styles.accentColor}>Sizes</Headline>
         <View style={styles.cardRoot}>
           {sizes.map(({slug, memory, vcpus, disk, transfer, price_monthly, price_hourly}) => (
             <Card key={slug} onPress={() => setSize(slug)} style={[styles.card, slug === size && styles.cardSelected]}>
@@ -258,7 +257,7 @@ export default function VM({route, navigation}) {
             </Card>
           ))}
         </View>
-        <Headline style={{color: accent}}>Regions</Headline>
+        <Headline style={styles.accentColor}>Regions</Headline>
         <View style={styles.cardRoot}>
           {regions.map(({name, slug}) => (
             <Card
@@ -271,7 +270,7 @@ export default function VM({route, navigation}) {
             </Card>
           ))}
         </View>
-        <Headline style={{color: accent}}>How many?</Headline>
+        <Headline style={styles.accentColor}>How many?</Headline>
         <View style={styles.stepperContainer}>
           <View>
             <Button
@@ -294,7 +293,7 @@ export default function VM({route, navigation}) {
             </Button>
           </View>
         </View>
-        <Headline style={{color: accent}}>Virtual Machines Names</Headline>
+        <Headline style={styles.accentColor}>Virtual Machines Names</Headline>
         {emails.map((email, index) => (
           <TextInput
             mode="outlined"
@@ -328,6 +327,9 @@ const styles = StyleSheet.create({
   scrollView: {
     paddingVertical: 15,
     paddingHorizontal: 20,
+  },
+  accentColor: {
+    color: theme.colors.accent,
   },
   cardRoot: {
     flex: 1,
