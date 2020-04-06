@@ -411,7 +411,7 @@ class VMDetailPage extends React.Component {
                             : <Grid item xs>
                               <ProductCards
                                 products={this.state.products}
-                                handleProductActions={this.handleProductActions}
+                                handleTabChange={this.handleTabChange}
                                 vmId={id}
                                 productsInVM={products}
                                 displayAll={false}
@@ -425,7 +425,7 @@ class VMDetailPage extends React.Component {
                   <TabPanel value={this.state.currentTab} index={1}>
                     <ProductCards
                       products={this.state.products}
-                      handleProductActions={this.handleProductActions}
+                      handleTabChange={this.handleTabChange}
                       vmId={id}
                       productsInVM={products}
                       displayAll={true}

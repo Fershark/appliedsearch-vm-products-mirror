@@ -1,11 +1,11 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { makeStyles } from "@material-ui/core/styles"
 import {
   Card,
   CardHeader,
   CardActions,
   CardContent,
-  CardMedia,
+  LinearProgress,
   Button,
   Typography,
   FormControl,
@@ -16,7 +16,8 @@ import {
 } from "@material-ui/core"
 
 import {
-  API_CREATE_ACTION
+  API_CREATE_ACTION,
+  API_GET_VMS
 } from '../config/endpoints-conf';
 
 import { getUserIdToken } from '../services/firebase';
@@ -58,7 +59,9 @@ const ActionStatus = {
 export default function ProductCard({
   product,
   vmId,
-  productsInVM
+  productsInVM,
+  displayAll,
+  handleTabChange
 }) {
 
   //PROPS
@@ -79,11 +82,81 @@ export default function ProductCard({
     }
   });
 
+  //POLLING to update addedProduct
+  let TIMER = null;
+  const updateAddedProduct = async () => {
+
+    // const fetchVMInfo = async () => {
+      //get token
+      const token = await getUserIdToken();
+
+      //fetch vm-detail
+      const result = await fetch(
+        API_GET_VMS + vmId, {
+        headers: {
+          Authorization: token,
+        },
+      });
+
+      //convert to JSON
+      const dropletInfo = await result.json();
+      console.log(new Date())
+      console.log(productName)
+      console.log('dropletInfo.products', dropletInfo.products)
+      console.log()
+      let productsInVM = dropletInfo.products;
+
+      let updatedAddedProduct = null;
+      details.forEach(p => {
+          if (productsInVM[p.id] != undefined) {
+            updatedAddedProduct = {
+              id: p.id,
+              description: p.description,
+              version: p.version,
+              status: productsInVM[p.id].status
+            }
+            
+          }
+      });
+
+      //updatedAddedProduct must different
+      const prevStatus = addedProduct === null? null : addedProduct.status;
+      const updateStatus = updatedAddedProduct === null? null : updatedAddedProduct.status;
+      if(prevStatus !== updateStatus){
+        setAddedProduct(updatedAddedProduct)
+        clearInterval(TIMER)
+        //reload VM INFO tab if empty product
+        if(Object.keys(productsInVM).length === 0 && productsInVM.constructor === Object && displayAll === false){
+          handleTabChange({}, 0)
+        }
+      }
+    // }
+  };
+
   //STATES
   const [productId, setProductId] =
     useState(details[0].id)
   const [addedProduct, setAddedProduct] =
     useState(initialAddedProduct)
+
+  //EFFECTS
+  useEffect(() => {
+
+    updateAddedProduct()
+    .then(() => {
+      if(addedProduct !== null && (addedProduct.status === ProductStatus.INSTALLING 
+        || addedProduct.status === ProductStatus.UNINSTALLING)){
+          TIMER = setInterval(() => updateAddedProduct(), 5000)
+        }
+    })
+
+    return () => {
+      if(TIMER !== null){
+        clearInterval(TIMER)
+        TIMER = null
+      }
+    };
+  }, [addedProduct]);
 
   // HANDLERS
   const handleSelectChange = (event) => {
@@ -153,6 +226,7 @@ export default function ProductCard({
           }
         });
 
+        TIMER = setInterval(()=> updateAddedProduct(), 5000);
       }
 
       doneJob()
@@ -164,8 +238,9 @@ export default function ProductCard({
   //STYLES
   const classes = useStyles()
 
-  return (<Grid item xs component={Card} key={productName.replace(/ /g, "-")} className={classes.root}>
-    {/* <Card className={classes.root}> */}
+  return ( displayAll === false && addedProduct === null
+    ? ''
+    : <Grid item xs component={Card} key={productName.replace(/ /g, "-")} className={classes.root}>
     {console.log({ initialAddedProduct })}
     <Grid container spacing={0}
       direction="column"
@@ -210,9 +285,15 @@ export default function ProductCard({
                     })}
                   </Select>
                 </FormControl>
-                : <Typography gutterBottom variant="h6" color="secondary" >
+                : <>
+                <Typography gutterBottom variant="h6" color="secondary"  >
                   {addedProduct.status.toUpperCase()}
                 </Typography>
+                {addedProduct.status === ProductStatus.INSTALLING || 
+                  addedProduct.status === ProductStatus.UNINSTALLING
+                  ? <LinearProgress  />
+                  : ''}
+                </>
               }
             </Grid>
             <Grid item>
