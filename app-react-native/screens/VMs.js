@@ -1,18 +1,17 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {View, StyleSheet, SafeAreaView, FlatList} from 'react-native';
 import {List, FAB} from 'react-native-paper';
 
-import {API_GET_VMS, API_DELETE_VM} from '../config/endpoints-conf';
+import {API_GET_VMS} from '../config/endpoints-conf';
 import {getUserIdToken} from '../services/Firebase';
 import {ProgressBar} from '../components';
 
 export default function VMs({route, navigation}) {
   const [loading, setLoading] = useState(true);
   const [vms, setVms] = useState([]);
-  const [refresh, setRefresh] = useState(route.params.refresh);
 
-  useEffect(() => {
-    const getData = async () => {
+  const getData = useCallback(() => {
+    const call = async () => {
       setLoading(true);
       const token = await getUserIdToken();
       const resVms = await fetch(API_GET_VMS, {
@@ -42,31 +41,15 @@ export default function VMs({route, navigation}) {
       }
       setLoading(false);
     };
+    call();
+  }, []);
 
+  useEffect(() => {
     if (route.params.refresh) {
       route.params.refresh = false;
       getData();
     }
-  }, [route.params.refresh]);
-
-  const deleteVm = async ({id}) => {
-    setLoading(true);
-    const token = await getUserIdToken();
-    try {
-      const resDelete = fetch(`${API_DELETE_VM}${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: token,
-        },
-      });
-      if (resDelete.ok) {
-        route.params.refresh = true;
-      }
-    } catch (error) {
-      console.log({error});
-    }
-    setLoading(false);
-  };
+  }, [route.params.refresh, getData]);
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -82,6 +65,8 @@ export default function VMs({route, navigation}) {
           />
         )}
         keyExtractor={item => item.id.toString()}
+        onRefresh={() => getData()}
+        refreshing={loading}
       />
       <FAB style={styles.fab} small icon="plus" onPress={() => navigation.navigate('VM')} />
     </SafeAreaView>
