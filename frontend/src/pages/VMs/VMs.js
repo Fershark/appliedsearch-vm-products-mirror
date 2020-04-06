@@ -78,10 +78,10 @@ export default function VMs({appStyle, match, history}) {
               {title: 'Distribution', field: 'distribution'},
               {title: 'Status', field: 'status'},
               {title: 'IP address', field: 'ipAddress'},
-              {title: 'Region', field: 'region'},
-              {title: 'CPUs', field: 'cpus'},
-              {title: 'Memory', field: 'memory'},
-              {title: 'Disk', field: 'disk'},
+              // {title: 'Region', field: 'region'},
+              // {title: 'CPUs', field: 'cpus'},
+              // {title: 'Memory', field: 'memory'},
+              // {title: 'Disk', field: 'disk'},
             ]}
             data={vms}
             addClicked={(event, rowData) => history.push(`${url}/add`)}
